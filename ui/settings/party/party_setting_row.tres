@@ -1,0 +1,12 @@
+[gd_resource type="Theme" load_steps=2 format=3 uid="uid://dompfbe2xjpfe"]
+
+[ext_resource type="FontFile" uid="uid://c153uvscdsse2" path="res://ui/fonts/ltromatic.ttf" id="1_1js7h"]
+
+[resource]
+Button/colors/font_color = Color(0, 0, 0, 1)
+Button/colors/font_focus_color = Color(0, 0, 0, 1)
+Button/colors/font_hover_color = Color(0.4, 0.4, 0.4, 1)
+Button/colors/font_outline_color = Color(0.94902, 0.94902, 0.94902, 1)
+Button/colors/font_pressed_color = Color(0.2, 0.2, 0.2, 1)
+Button/constants/outline_size = 6
+Button/fonts/font = ExtResource("1_1js7h")

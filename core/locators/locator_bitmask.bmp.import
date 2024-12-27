@@ -1,0 +1,16 @@
+[remap]
+
+importer="bitmap"
+type="BitMap"
+uid="uid://4nide1o7e130"
+path="res://.godot/imported/locator_bitmask.bmp-d4cf362e953a6d46c37ae51492cf5511.res"
+
+[deps]
+
+source_file="res://core/locators/locator_bitmask.bmp"
+dest_files=["res://.godot/imported/locator_bitmask.bmp-d4cf362e953a6d46c37ae51492cf5511.res"]
+
+[params]
+
+create_from=0
+threshold=0.5

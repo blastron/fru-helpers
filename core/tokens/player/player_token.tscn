@@ -1,0 +1,34 @@
+[gd_scene load_steps=12 format=3 uid="uid://kiocqomkwe8n"]
+
+[ext_resource type="Script" path="res://core/tokens/player/player_token.gd" id="1_6gl54"]
+[ext_resource type="Texture2D" uid="uid://b3x81hn5v0x5" path="res://core/tokens/player/player_t1.png" id="2_n0ghk"]
+[ext_resource type="Texture2D" uid="uid://clf0tmy5dvdr1" path="res://core/tokens/player/player_t2.png" id="3_8tmq6"]
+[ext_resource type="Texture2D" uid="uid://dvkc2unhgiekr" path="res://core/tokens/player/player_h1.png" id="4_tforj"]
+[ext_resource type="Texture2D" uid="uid://bo2njorvimkos" path="res://core/tokens/player/player_h2.png" id="5_u62p5"]
+[ext_resource type="Texture2D" uid="uid://dybjjp4pjyyot" path="res://core/tokens/player/player_m1.png" id="6_uho10"]
+[ext_resource type="Texture2D" uid="uid://dnib6roddsask" path="res://core/tokens/player/player_m2.png" id="7_te8q7"]
+[ext_resource type="Texture2D" uid="uid://c7xyenafi4s4l" path="res://core/tokens/player/player_r1.png" id="8_lpqul"]
+[ext_resource type="Texture2D" uid="uid://bdps5r6f2exmr" path="res://core/tokens/player/player_r2.png" id="9_87yvu"]
+[ext_resource type="Texture2D" uid="uid://fxlgp50xad7x" path="res://core/tokens/player/player_generic.png" id="10_vscjq"]
+[ext_resource type="Texture2D" uid="uid://cjbdceg33bgk" path="res://core/tokens/player/player_highlight.png" id="11_putux"]
+
+[node name="PlayerToken" type="Node2D" node_paths=PackedStringArray("_highlight", "icon")]
+script = ExtResource("1_6gl54")
+_highlight = NodePath("highlight")
+icon_job_t1 = ExtResource("2_n0ghk")
+icon_job_t2 = ExtResource("3_8tmq6")
+icon_job_h1 = ExtResource("4_tforj")
+icon_job_h2 = ExtResource("5_u62p5")
+icon_job_m1 = ExtResource("6_uho10")
+icon_job_m2 = ExtResource("7_te8q7")
+icon_job_r1 = ExtResource("8_lpqul")
+icon_job_r2 = ExtResource("9_87yvu")
+icon_job_unknown = ExtResource("10_vscjq")
+icon = NodePath("icon")
+
+[node name="icon" type="Sprite2D" parent="."]
+texture = ExtResource("10_vscjq")
+
+[node name="highlight" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("11_putux")

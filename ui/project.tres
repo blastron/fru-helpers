@@ -1,0 +1,29 @@
+[gd_resource type="Theme" load_steps=7 format=3 uid="uid://5oebxeaf2f0d"]
+
+[ext_resource type="FontFile" uid="uid://c153uvscdsse2" path="res://ui/fonts/ltromatic.ttf" id="1_mgcqx"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_07lff"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jaaw4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jxrn4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_djexf"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rmkr5"]
+
+[resource]
+default_font = ExtResource("1_mgcqx")
+default_font_size = 20
+Button/colors/font_color = Color(1, 1, 1, 1)
+Button/colors/font_disabled_color = Color(0.4, 0.4, 0.4, 1)
+Button/colors/font_hover_color = Color(1, 0.8, 0.8, 1)
+Button/colors/font_outline_color = Color(0, 0, 0, 1)
+Button/colors/font_pressed_color = Color(0.6, 0.4, 0.4, 1)
+Button/constants/outline_size = 16
+Button/font_sizes/font_size = 24
+Button/styles/disabled = SubResource("StyleBoxEmpty_07lff")
+Button/styles/focus = SubResource("StyleBoxEmpty_jaaw4")
+Button/styles/hover = SubResource("StyleBoxEmpty_jxrn4")
+Button/styles/normal = SubResource("StyleBoxEmpty_djexf")
+Button/styles/pressed = SubResource("StyleBoxEmpty_rmkr5")

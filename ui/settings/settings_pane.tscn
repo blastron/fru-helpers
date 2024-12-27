@@ -1,0 +1,73 @@
+[gd_scene load_steps=4 format=3 uid="uid://blqgdqg41c33r"]
+
+[ext_resource type="Theme" uid="uid://b2y8th72hge7x" path="res://ui/settings/settings_pane.tres" id="1_fd5y7"]
+[ext_resource type="Script" path="res://ui/settings/settings_pane.gd" id="2_uhtj1"]
+[ext_resource type="PackedScene" uid="uid://dqwmjfhs7xfuf" path="res://ui/settings/party/party_setting_row.tscn" id="3_mv3tr"]
+
+[node name="root" type="CanvasLayer" node_paths=PackedStringArray("_party_list")]
+script = ExtResource("2_uhtj1")
+_party_list = NodePath("settings pane/party settings/party list")
+_party_row_type = ExtResource("3_mv3tr")
+
+[node name="background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.784314)
+
+[node name="settings pane" type="PanelContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -194.0
+offset_right = 160.0
+offset_bottom = 194.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_fd5y7")
+
+[node name="party settings" type="PanelContainer" parent="settings pane"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+
+[node name="party list" type="VBoxContainer" parent="settings pane/party settings"]
+layout_mode = 2
+
+[node name="preview row 1" parent="settings pane/party settings/party list" instance=ExtResource("3_mv3tr")]
+layout_mode = 2
+up_disabled = true
+
+[node name="preview row 2" parent="settings pane/party settings/party list" instance=ExtResource("3_mv3tr")]
+layout_mode = 2
+group = 1
+
+[node name="preview row 3" parent="settings pane/party settings/party list" instance=ExtResource("3_mv3tr")]
+layout_mode = 2
+role = 4
+
+[node name="preview row 4" parent="settings pane/party settings/party list" instance=ExtResource("3_mv3tr")]
+layout_mode = 2
+role = 4
+group = 1
+
+[node name="preview row 5" parent="settings pane/party settings/party list" instance=ExtResource("3_mv3tr")]
+layout_mode = 2
+
+[node name="preview row 6" parent="settings pane/party settings/party list" instance=ExtResource("3_mv3tr")]
+layout_mode = 2
+group = 1
+
+[node name="preview row 7" parent="settings pane/party settings/party list" instance=ExtResource("3_mv3tr")]
+layout_mode = 2
+role = 8
+
+[node name="preview row 8" parent="settings pane/party settings/party list" instance=ExtResource("3_mv3tr")]
+layout_mode = 2
+down_disabled = true
+role = 8
+group = 1

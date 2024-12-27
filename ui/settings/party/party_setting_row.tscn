@@ -1,0 +1,104 @@
+[gd_scene load_steps=19 format=3 uid="uid://dqwmjfhs7xfuf"]
+
+[ext_resource type="Script" path="res://ui/settings/party/party_setting_row.gd" id="1_ilmky"]
+[ext_resource type="Theme" uid="uid://dompfbe2xjpfe" path="res://ui/settings/party/party_setting_row.tres" id="1_ork0c"]
+[ext_resource type="Texture2D" uid="uid://xxeq2gxefaa2" path="res://ui/party_list/icons/plist_role_t1.png" id="3_ijbhl"]
+[ext_resource type="Texture2D" uid="uid://cdoci457wlxc1" path="res://ui/party_list/icons/plist_role_t2.png" id="4_ujc5n"]
+[ext_resource type="Texture2D" uid="uid://dbbf3xa4vigjj" path="res://ui/party_list/icons/plist_role_h1.png" id="5_2e8ui"]
+[ext_resource type="Texture2D" uid="uid://ca28up7sh3tjy" path="res://ui/party_list/icons/plist_role_h2.png" id="6_1ykma"]
+[ext_resource type="Texture2D" uid="uid://dnf3jsplpxcaw" path="res://ui/party_list/icons/plist_role_m1.png" id="7_b80bk"]
+[ext_resource type="Texture2D" uid="uid://66qkji4231d6" path="res://ui/party_list/icons/plist_role_m2.png" id="8_i3lh6"]
+[ext_resource type="Texture2D" uid="uid://br5abevoq8xbl" path="res://ui/party_list/icons/plist_role_r1.png" id="9_7bby6"]
+[ext_resource type="Texture2D" uid="uid://d0opfd7mgqaol" path="res://ui/party_list/icons/plist_role_r2.png" id="10_18ihp"]
+[ext_resource type="Texture2D" uid="uid://cwkrjgpp4pdkc" path="res://ui/party_list/icons/plist_role_unknown.png" id="11_f840p"]
+[ext_resource type="Texture2D" uid="uid://cpwfc0b5tj0s7" path="res://ui/settings/party/party_list_sort_normal.png" id="13_i5q7j"]
+[ext_resource type="Texture2D" uid="uid://bxfly8lw73qq4" path="res://ui/settings/party/party_list_sort_pressed.png" id="14_sv6mn"]
+[ext_resource type="Texture2D" uid="uid://c2yxks03xmmkv" path="res://ui/settings/party/party_list_sort_hover.png" id="15_8f0q2"]
+[ext_resource type="Texture2D" uid="uid://b7wugcjs16wm7" path="res://ui/party_list/icons/plist_self_selected.png" id="16_1na1q"]
+[ext_resource type="Texture2D" uid="uid://dymbkd5mgm17f" path="res://ui/settings/party/party_list_sort_disabled.png" id="16_nhvqs"]
+[ext_resource type="Texture2D" uid="uid://cka2f5oyop56k" path="res://ui/party_list/icons/plist_self_deselected.png" id="17_mahcm"]
+[ext_resource type="Texture2D" uid="uid://di1iylapl1ts3" path="res://ui/party_list/icons/plist_self_hovered.png" id="18_ygxce"]
+
+[node name="PartySettingRow" type="HBoxContainer" node_paths=PackedStringArray("_up_arrow", "_down_arrow", "_role_icon", "_job_list", "user_control_checkbox")]
+offset_right = 402.0
+offset_bottom = 40.0
+theme = ExtResource("1_ork0c")
+theme_override_constants/separation = 8
+script = ExtResource("1_ilmky")
+_up_arrow = NodePath("VSplitContainer/arrow_up")
+_down_arrow = NodePath("VSplitContainer/arrow_down")
+_role_icon = NodePath("MarginContainer/role_icon")
+_job_list = NodePath("job_list")
+user_control_checkbox = NodePath("MarginContainer/role_icon/user_controlled")
+icon_job_t1 = ExtResource("3_ijbhl")
+icon_job_t2 = ExtResource("4_ujc5n")
+icon_job_h1 = ExtResource("5_2e8ui")
+icon_job_h2 = ExtResource("6_1ykma")
+icon_job_m1 = ExtResource("7_b80bk")
+icon_job_m2 = ExtResource("8_i3lh6")
+icon_job_r1 = ExtResource("9_7bby6")
+icon_job_r2 = ExtResource("10_18ihp")
+icon_job_unknown = ExtResource("11_f840p")
+up_disabled = false
+down_disabled = false
+user_controlled = true
+
+[node name="VSplitContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 0
+
+[node name="arrow_up" type="TextureButton" parent="VSplitContainer"]
+layout_mode = 2
+focus_mode = 0
+texture_normal = ExtResource("13_i5q7j")
+texture_pressed = ExtResource("14_sv6mn")
+texture_hover = ExtResource("15_8f0q2")
+texture_disabled = ExtResource("16_nhvqs")
+
+[node name="arrow_down" type="TextureButton" parent="VSplitContainer"]
+layout_mode = 2
+focus_mode = 0
+texture_normal = ExtResource("13_i5q7j")
+texture_pressed = ExtResource("14_sv6mn")
+texture_hover = ExtResource("15_8f0q2")
+texture_disabled = ExtResource("16_nhvqs")
+flip_h = true
+flip_v = true
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 2
+
+[node name="role_icon" type="TextureRect" parent="MarginContainer"]
+layout_mode = 2
+texture = ExtResource("3_ijbhl")
+stretch_mode = 3
+
+[node name="user_controlled" type="TextureButton" parent="MarginContainer/role_icon"]
+layout_mode = 0
+offset_left = -8.0
+offset_top = 4.0
+offset_right = 37.0
+offset_bottom = 38.0
+focus_mode = 0
+toggle_mode = true
+button_pressed = true
+texture_normal = ExtResource("17_mahcm")
+texture_pressed = ExtResource("16_1na1q")
+texture_hover = ExtResource("18_ygxce")
+texture_disabled = ExtResource("17_mahcm")
+
+[node name="job_list" type="OptionButton" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+selected = 0
+item_count = 4
+popup/item_0/text = "Paladin"
+popup/item_1/text = "Warrior"
+popup/item_1/id = 1
+popup/item_2/text = "Dark Knight"
+popup/item_2/id = 2
+popup/item_3/text = "Gunbreaker"
+popup/item_3/id = 3

@@ -1,0 +1,45 @@
+[gd_scene load_steps=12 format=3 uid="uid://cqv1v8437xn37"]
+
+[ext_resource type="Script" path="res://ui/party_list/party_list_row.gd" id="1_nkkua"]
+[ext_resource type="Texture2D" uid="uid://cwkrjgpp4pdkc" path="res://ui/party_list/icons/plist_role_unknown.png" id="2_m0lw0"]
+[ext_resource type="Texture2D" uid="uid://xxeq2gxefaa2" path="res://ui/party_list/icons/plist_role_t1.png" id="2_ta56u"]
+[ext_resource type="Texture2D" uid="uid://b7wugcjs16wm7" path="res://ui/party_list/icons/plist_self_selected.png" id="3_077xa"]
+[ext_resource type="Texture2D" uid="uid://cdoci457wlxc1" path="res://ui/party_list/icons/plist_role_t2.png" id="3_cjfxi"]
+[ext_resource type="Texture2D" uid="uid://dbbf3xa4vigjj" path="res://ui/party_list/icons/plist_role_h1.png" id="4_d2sni"]
+[ext_resource type="Texture2D" uid="uid://ca28up7sh3tjy" path="res://ui/party_list/icons/plist_role_h2.png" id="5_0sh6q"]
+[ext_resource type="Texture2D" uid="uid://dnf3jsplpxcaw" path="res://ui/party_list/icons/plist_role_m1.png" id="6_v0kvb"]
+[ext_resource type="Texture2D" uid="uid://66qkji4231d6" path="res://ui/party_list/icons/plist_role_m2.png" id="7_2vitj"]
+[ext_resource type="Texture2D" uid="uid://br5abevoq8xbl" path="res://ui/party_list/icons/plist_role_r1.png" id="8_dop82"]
+[ext_resource type="Texture2D" uid="uid://d0opfd7mgqaol" path="res://ui/party_list/icons/plist_role_r2.png" id="9_b1a4v"]
+
+[node name="PartyListRow" type="HBoxContainer" node_paths=PackedStringArray("_role_icon", "_user_control_icon")]
+script = ExtResource("1_nkkua")
+_role_icon = NodePath("MarginContainer/icon")
+_user_control_icon = NodePath("MarginContainer/icon/user control")
+icon_job_t1 = ExtResource("2_ta56u")
+icon_job_t2 = ExtResource("3_cjfxi")
+icon_job_h1 = ExtResource("4_d2sni")
+icon_job_h2 = ExtResource("5_0sh6q")
+icon_job_m1 = ExtResource("6_v0kvb")
+icon_job_m2 = ExtResource("7_2vitj")
+icon_job_r1 = ExtResource("8_dop82")
+icon_job_r2 = ExtResource("9_b1a4v")
+icon_job_unknown = ExtResource("2_m0lw0")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+
+[node name="icon" type="TextureRect" parent="MarginContainer"]
+layout_mode = 2
+texture = ExtResource("2_m0lw0")
+stretch_mode = 2
+
+[node name="user control" type="TextureRect" parent="MarginContainer/icon"]
+layout_mode = 0
+offset_left = -8.0
+offset_top = 4.0
+offset_right = 8.0
+offset_bottom = 20.0
+texture = ExtResource("3_077xa")
+stretch_mode = 2

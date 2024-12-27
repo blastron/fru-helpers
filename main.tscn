@@ -1,0 +1,42 @@
+[gd_scene load_steps=4 format=3 uid="uid://dqfdf4t70unlh"]
+
+[ext_resource type="Script" path="res://main.gd" id="1_4nxve"]
+[ext_resource type="Texture2D" uid="uid://fg1yiwcr5uv7" path="res://main/title.png" id="2_c7xrd"]
+[ext_resource type="PackedScene" uid="uid://blqgdqg41c33r" path="res://ui/settings/settings_pane.tscn" id="3_smmp5"]
+
+[node name="root" type="CanvasLayer"]
+script = ExtResource("1_4nxve")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+offset_right = 960.0
+offset_bottom = 540.0
+texture = ExtResource("2_c7xrd")
+
+[node name="p1" type="Node" parent="."]
+
+[node name="p1 - fall of fate" type="Button" parent="p1"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 36.0
+offset_top = 295.0
+offset_right = -1030.0
+offset_bottom = -383.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "fall of faith"
+
+[node name="settings button" type="Button" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1054.0
+offset_top = 14.0
+offset_right = -12.0
+offset_bottom = -664.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "settings"
+
+[node name="settings" parent="." instance=ExtResource("3_smmp5")]
+visible = false

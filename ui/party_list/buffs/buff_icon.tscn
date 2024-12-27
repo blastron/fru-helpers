@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://s25nfrm4j2u1"]
+
+[ext_resource type="Script" path="res://ui/party_list/buffs/buff_icon.gd" id="1_2qq1t"]
+
+[node name="BuffIcon" type="TextureRect"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_2qq1t")
