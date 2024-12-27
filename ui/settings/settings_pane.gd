@@ -31,8 +31,8 @@ func _load_party_list() -> void:
 		
 	# Empty the party list.
 	for child in _party_list.get_children():
-		# (i cannot believe that this is safe in gdscript??)
 		_party_list.remove_child(child)
+		child.queue_free()
 	_party_list_user_control_group.get_buttons().clear()
 	
 	var player_data: Array[PlayerData] = UserSettings.get_player_data()

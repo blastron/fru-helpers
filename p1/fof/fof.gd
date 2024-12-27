@@ -17,6 +17,9 @@ var _clone_2: Thancred
 var _clone_3: Thancred
 
 
+@export var _prey_debuff: BuffData
+
+
 func _ready() -> void:
 	_thancred = find_child("thancred") # This is Thancred.
 	_clone_1 = find_child("clone NW")
@@ -145,6 +148,8 @@ func _assign_tether(player: PlayerToken, clone: Thancred, tether_type: String, t
 	player.add_tag(_tether_tags[tether_number])
 	player.add_tag(tether_type)
 	clone.add_tag(tether_type)
+	
+	player.player_data.add_buff(_prey_debuff)
 
 	var color: Color = _fire_color if tether_type == "fire" else _lightning_color
 	create_tether(_tether_tags[tether_number], player, clone, color)
@@ -152,6 +157,10 @@ func _assign_tether(player: PlayerToken, clone: Thancred, tether_type: String, t
 # Clear the given tether and wait for it to animate out.
 func _clear_tether(tether_number: int):
 	destroy_tether(_tether_tags[tether_number])
+	
+	# Find the tethered player and remove their debuff.
+	var player: PlayerToken = find_token_by_tag(_tether_tags[tether_number])
+	player.player_data.remove_buff(_prey_debuff)
 
 	
 ##########

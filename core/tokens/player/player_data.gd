@@ -1,6 +1,10 @@
 class_name PlayerData extends RefCounted
 
-signal role_changed()
+
+func _init(in_job: Job, in_group: Group):
+	job = in_job
+	group = in_group
+
 
 # The player's job. Used to automatically determine role.
 enum Job {
@@ -32,14 +36,9 @@ var user_controlled: bool = false :
 		user_controlled = value
 		role_changed.emit()
 
-# Force a player into a specific role spot, ignoring their job. Use when you're running double phys ranged because your
-#   PCT is carrying the entire DPS meter on their back.
-# Set to Role.NONE if no fake role is assigned.
-var fake_role: Role = Role.NONE :
-	get: return fake_role
-	set(value):
-		fake_role = value
-		role_changed.emit()
+##########
+## Roles
+##########
 
 enum Role {
 	NONE,
@@ -49,12 +48,16 @@ enum Role {
 	RANGED, PHYS_RANGED, CASTER
 }
 
+# The general role (e.g. "tank", "healer") played by this player.
 var role: Role :
-	get: return get_role_for_job(job)
+	get:
+		if fake_role == Role.NONE: return get_role_for_job(job)
+		else: return simplify_detailed_role(fake_role)
 	set(value):
 		assert(false, "Don't set role directly. Use job or fake_role instead.")
 		fake_role = value
 
+# The detailed role (e.g. "main tank", "barrier healer") played by this player.
 var detailed_role: Role :
 	get:
 		if fake_role == Role.NONE:
@@ -62,15 +65,25 @@ var detailed_role: Role :
 			if matched_role == Role.TANK:
 				return Role.MAIN_TANK if group == Group.GROUP_ONE else Role.OFF_TANK
 			else: return matched_role
-		else:
-			return fake_role
+		else: return fake_role
 	set(value):
 		assert(false, "Don't set detailed_role directly. Use job or fake_role instead.")
 		fake_role = value
 
-func _init(in_job: Job, in_group: Group):
-	job = in_job
-	group = in_group
+# Force a player into a specific role spot, ignoring their job. Use when you're running double phys ranged because your
+#   PCT is carrying the entire DPS meter on their back.
+# Set to Role.NONE if no fake role is assigned.
+var fake_role: Role = Role.NONE :
+	get: return fake_role
+	set(value):
+		fake_role = value
+		role_changed.emit()
+
+signal role_changed()
+
+##########
+## Statics for job/role translation
+##########
 
 # Gets the name for a given job.
 # TODO: Move this to a string table in case this winds up needing localization
@@ -145,3 +158,41 @@ static func simplify_detailed_role(detailed_role: Role) -> Role:
 			return Role.RANGED
 		_:
 			return Role.NONE
+
+##########
+## Buffs and debuffs
+##########
+
+signal buff_added(buff: BuffData, instance: BuffInstance)
+signal buff_removed(buff: BuffData, instance: BuffInstance)
+
+# Maps buffs onto instances. Key: BuffData, Value: BuffInstance
+var _buff_instances: Dictionary
+
+
+func add_buff(buff: BuffData) -> BuffInstance:
+	assert(!_buff_instances.has(buff), "Player %s already had an instance of buff %s." % [self, buff])
+	if _buff_instances.has(buff): return _buff_instances[buff]
+	
+	var new_instance: BuffInstance = BuffInstance.new()
+	_buff_instances[buff] = new_instance
+	buff_added.emit(buff, new_instance)
+	return new_instance
+
+
+func remove_buff(buff: BuffData):
+	if _buff_instances.has(buff):
+		var instance: BuffInstance = _buff_instances[buff]
+		buff_removed.emit(buff, instance)
+		_buff_instances.erase(buff)
+
+
+func get_active_buffs() -> Array[BuffData]:
+	var cast_array: Array[BuffData]
+	cast_array.assign(_buff_instances.keys())
+	return cast_array
+
+
+func get_buff_instance(buff: BuffData) -> BuffInstance:
+	assert(_buff_instances.has(buff), "Could not find instance of buff %s on player %s." % [buff, self])
+	return _buff_instances[buff] if _buff_instances.has(buff) else null

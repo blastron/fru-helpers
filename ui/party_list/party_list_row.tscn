@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://cqv1v8437xn37"]
+[gd_scene load_steps=13 format=3 uid="uid://cqv1v8437xn37"]
 
 [ext_resource type="Script" path="res://ui/party_list/party_list_row.gd" id="1_nkkua"]
 [ext_resource type="Texture2D" uid="uid://cwkrjgpp4pdkc" path="res://ui/party_list/icons/plist_role_unknown.png" id="2_m0lw0"]
@@ -11,11 +11,14 @@
 [ext_resource type="Texture2D" uid="uid://66qkji4231d6" path="res://ui/party_list/icons/plist_role_m2.png" id="7_2vitj"]
 [ext_resource type="Texture2D" uid="uid://br5abevoq8xbl" path="res://ui/party_list/icons/plist_role_r1.png" id="8_dop82"]
 [ext_resource type="Texture2D" uid="uid://d0opfd7mgqaol" path="res://ui/party_list/icons/plist_role_r2.png" id="9_b1a4v"]
+[ext_resource type="PackedScene" uid="uid://s25nfrm4j2u1" path="res://ui/party_list/buffs/buff_icon.tscn" id="12_23w8p"]
 
-[node name="PartyListRow" type="HBoxContainer" node_paths=PackedStringArray("_role_icon", "_user_control_icon")]
+[node name="PartyListRow" type="HBoxContainer" node_paths=PackedStringArray("_role_icon", "_user_control_icon", "_buff_list")]
 script = ExtResource("1_nkkua")
 _role_icon = NodePath("MarginContainer/icon")
 _user_control_icon = NodePath("MarginContainer/icon/user control")
+_buff_list = NodePath("MarginContainer2/buff list")
+_buff_type = ExtResource("12_23w8p")
 icon_job_t1 = ExtResource("2_ta56u")
 icon_job_t2 = ExtResource("3_cjfxi")
 icon_job_h1 = ExtResource("4_d2sni")
@@ -38,8 +41,23 @@ stretch_mode = 2
 [node name="user control" type="TextureRect" parent="MarginContainer/icon"]
 layout_mode = 0
 offset_left = -8.0
-offset_top = 4.0
+offset_top = 2.0
 offset_right = 8.0
-offset_bottom = 20.0
+offset_bottom = 18.0
 texture = ExtResource("3_077xa")
 stretch_mode = 2
+
+[node name="MarginContainer2" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = -2
+theme_override_constants/margin_top = 1
+
+[node name="buff list" type="HBoxContainer" parent="MarginContainer2"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="preview buff" parent="MarginContainer2/buff list" instance=ExtResource("12_23w8p")]
+layout_mode = 2
+
+[node name="preview buff2" parent="MarginContainer2/buff list" instance=ExtResource("12_23w8p")]
+layout_mode = 2
