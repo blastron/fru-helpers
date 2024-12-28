@@ -1,12 +1,14 @@
-[gd_scene load_steps=11 format=3 uid="uid://bnxd7cnohyqg4"]
+[gd_scene load_steps=15 format=3 uid="uid://bnxd7cnohyqg4"]
 
 [ext_resource type="Texture2D" uid="uid://d3s7k5dnrb8w7" path="res://p1/p1 ring.png" id="1_87v2h"]
 [ext_resource type="Script" path="res://p1/fof/fof.gd" id="1_r0yxp"]
 [ext_resource type="PackedScene" uid="uid://kiocqomkwe8n" path="res://core/tokens/player/player_token.tscn" id="2_8m1s1"]
 [ext_resource type="Texture2D" uid="uid://mp6ei6jsyiw0" path="res://ui/party_list/buffs/common_icons/prey.png" id="2_tsevi"]
 [ext_resource type="Script" path="res://core/buffs/buff_data.gd" id="3_2oohq"]
+[ext_resource type="Texture2D" uid="uid://d2ccenfxq8bv3" path="res://ui/party_list/buffs/common_icons/ruin_ddown.png" id="4_0qiq2"]
 [ext_resource type="PackedScene" uid="uid://thw6548celuv" path="res://p1/tokens/thancred.tscn" id="4_ejpbr"]
 [ext_resource type="PackedScene" uid="uid://blp7ojt3267u1" path="res://ui/description/description.tscn" id="4_yx3t5"]
+[ext_resource type="Texture2D" uid="uid://cyqs48e0js1fb" path="res://ui/party_list/buffs/common_icons/magic_vuln.png" id="5_bp7kr"]
 [ext_resource type="PackedScene" uid="uid://dwfl3kiyj4lvj" path="res://core/locators/locator.tscn" id="5_txyax"]
 [ext_resource type="PackedScene" uid="uid://dqir6acd01442" path="res://ui/party_list/party_list.tscn" id="6_auodc"]
 
@@ -14,9 +16,19 @@
 script = ExtResource("3_2oohq")
 icon = ExtResource("2_tsevi")
 
+[sub_resource type="Resource" id="Resource_m5kkb"]
+script = ExtResource("3_2oohq")
+icon = ExtResource("4_0qiq2")
+
+[sub_resource type="Resource" id="Resource_f71fd"]
+script = ExtResource("3_2oohq")
+icon = ExtResource("5_bp7kr")
+
 [node name="root" type="Node2D" node_paths=PackedStringArray("description_pane", "indicator_layer", "token_layer", "player_layer")]
 script = ExtResource("1_r0yxp")
 _prey_debuff = SubResource("Resource_hkluy")
+_ruin_debuff = SubResource("Resource_m5kkb")
+_mvuln_debuff = SubResource("Resource_f71fd")
 description_pane = NodePath("CanvasLayer/description")
 indicator_layer = NodePath("CanvasLayer/arena/indicator_layer")
 token_layer = NodePath("CanvasLayer/arena/token_layer")

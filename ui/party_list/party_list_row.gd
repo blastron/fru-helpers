@@ -4,6 +4,8 @@ class_name PartyListRow extends HBoxContainer
 @export var _role_icon: TextureRect
 @export var _user_control_icon: TextureRect
 
+@export var _dead_icon: TextureRect
+
 @export var _buff_list: HBoxContainer
 @export var _buff_type: PackedScene
 
@@ -28,6 +30,7 @@ var player_data: PlayerData:
 		if value == null or player_data != null: return
 
 		player_data = value
+		_dead_changed()
 
 		# Set visuals.
 		_update_icons()
@@ -42,7 +45,8 @@ var player_data: PlayerData:
 		for buff in player_data.get_active_buffs():
 			_add_buff(buff, player_data.get_buff_instance(buff))
 		
-		# Subscribe to buff change events.
+		# Subscribe to change events.
+		player_data.dead_changed.connect(self._dead_changed)
 		player_data.buff_added.connect(self._add_buff)
 		player_data.buff_removed.connect(self._remove_buff)
 
@@ -99,3 +103,6 @@ func _remove_buff(buff: BuffData, instance: BuffInstance) -> void:
 			_buff_list.remove_child(child)
 			child.queue_free()
 			return
+
+func _dead_changed() -> void:
+	if _dead_icon: _dead_icon.visible = player_data.dead

@@ -18,6 +18,8 @@ var _clone_3: Thancred
 
 
 @export var _prey_debuff: BuffData
+@export var _ruin_debuff: BuffData
+@export var _mvuln_debuff: BuffData
 
 
 enum Step {
@@ -270,9 +272,13 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 
 func _resolve_tether(tether_number: int, substep: int) -> void:
 	if tether_number == 0:
-		# No clones need to dash, so we just fire the first set of cones.
-		_launch_cones(tether_number)
-		finish_state()
+		match substep:
+			0: # No clones need to dash, so we just fire the first set of cones.
+				_launch_cones(tether_number)
+				finish_substep()
+			1:
+				_remove_vulns()
+				finish_state()
 	else:
 		var clone: Thancred = _clone_1 if tether_number == 1 else _clone_2 if tether_number == 2 else _clone_3
 		match substep:
@@ -287,11 +293,14 @@ func _resolve_tether(tether_number: int, substep: int) -> void:
 			2:	# Clone dashes out
 				add_dependency(clone)
 				clone.on_stage = false
+				_remove_vulns()
 				finish_state()
 
 
 func _launch_cones(tether_number: int) -> void:
-	var target: PlayerToken = find_token_by_tag(_tether_tags[tether_number]) as PlayerToken
+	var target: PlayerToken = find_token_by_tag(_tether_tags[tether_number])
+	_apply_damage(target)
+	
 	var is_fire: bool = target.has_tag("fire")
 	
 	var color: Color = _fire_color if is_fire else _lightning_color
@@ -299,20 +308,49 @@ func _launch_cones(tether_number: int) -> void:
 
 	var origin: Vector2 = target.position
 	
-	var other_players: Array[Token]
-	other_players.assign(get_other_player_tokens(target))
+	var other_players: Array[PlayerToken] = get_other_player_tokens(target)
 	var baits: Array[Token] = filter_closest(other_players, 1 if is_fire else 3, target.position)
+	
+	var hit_players: Array[PlayerToken]
+	hit_players.append(target)
 	
 	for bait in baits:
 		var bait_location: Vector2 = bait.position
 		var rotation: float = origin.angle_to_point(bait_location)
 		create_cone("fof_cone", origin, rotation, -1, arc_width, color, 1)
 		
-		var victims: Array[Token] = filter_in_cone(other_players, origin, rotation, 10000, arc_width)
-		for victim in victims:
-			create_circle("", victim.position, 50, false, Color.WHITE, 1)
+		var cone_hits: Array[Token] = filter_in_cone(other_players, origin, rotation, 10000, arc_width)
+		for cone_hit in cone_hits:
+			_apply_damage(cone_hit as PlayerToken)
+			if not hit_players.has(cone_hit):
+				hit_players.append(cone_hit)
+				
+	# Apply ruin debuff if there weren't three people in the stack.
+	# TODO: The fussless strat is super forgiving and lets the middle player stand basically wherever. We need to cheat here.
+	if is_fire and len(hit_players) < 4:
+		for player in hit_players:
+			player.player_data.add_buff(_ruin_debuff)
+				
 
-		
+func _apply_damage(target: PlayerToken) -> void:
+	var target_data: PlayerData = target.player_data
+	if target_data.has_buff(_mvuln_debuff):
+		target_data.dead = true
+	else:
+		var buff_instance: BuffInstance = target_data.add_buff(_mvuln_debuff)
+		buff_instance.stack_count = -2
+
+
+func _remove_vulns() -> void:
+	for player_token in player_tokens:
+		var player_data: PlayerData = player_token.player_data
+		if !player_data.dead and player_data.has_buff(_mvuln_debuff):
+			var vuln_instance: BuffInstance = player_data.get_buff_instance(_mvuln_debuff)
+			vuln_instance.stack_count += 1
+			if vuln_instance.stack_count == 0:
+				player_data.remove_buff(_mvuln_debuff)
+
+
 ##########
 ## FAILURE/COMPLETION
 ##########

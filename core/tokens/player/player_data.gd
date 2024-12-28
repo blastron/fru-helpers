@@ -20,6 +20,7 @@ var job: Job = Job.BRD :
 		job = value
 		role_changed.emit()
 
+
 # The group (or, "light party") that this player belongs to.
 enum Group { GROUP_ONE, GROUP_TWO }
 var group: Group = Group.GROUP_ONE :
@@ -29,6 +30,7 @@ var group: Group = Group.GROUP_ONE :
 		group = value
 		role_changed.emit()
 
+
 # Whether or not the user controls this player. Assumed to be true for only one player at a time.
 var user_controlled: bool = false :
 	get: return user_controlled
@@ -36,9 +38,14 @@ var user_controlled: bool = false :
 		user_controlled = value
 		role_changed.emit()
 
+
 ##########
 ## Roles
 ##########
+
+
+signal role_changed()
+
 
 enum Role {
 	NONE,
@@ -48,6 +55,7 @@ enum Role {
 	RANGED, PHYS_RANGED, CASTER
 }
 
+
 # The general role (e.g. "tank", "healer") played by this player.
 var role: Role :
 	get:
@@ -56,6 +64,7 @@ var role: Role :
 	set(value):
 		assert(false, "Don't set role directly. Use job or fake_role instead.")
 		fake_role = value
+
 
 # The detailed role (e.g. "main tank", "barrier healer") played by this player.
 var detailed_role: Role :
@@ -70,6 +79,7 @@ var detailed_role: Role :
 		assert(false, "Don't set detailed_role directly. Use job or fake_role instead.")
 		fake_role = value
 
+
 # Force a player into a specific role spot, ignoring their job. Use when you're running double phys ranged because your
 #   PCT is carrying the entire DPS meter on their back.
 # Set to Role.NONE if no fake role is assigned.
@@ -79,11 +89,11 @@ var fake_role: Role = Role.NONE :
 		fake_role = value
 		role_changed.emit()
 
-signal role_changed()
 
 ##########
 ## Statics for job/role translation
 ##########
+
 
 # Gets the name for a given job.
 # TODO: Move this to a string table in case this winds up needing localization
@@ -112,6 +122,7 @@ static func get_job_name(job: Job) -> String:
 		Job.PCT: return "Pictomancer"
 	return "Unknown"
 
+
 # Gets the jobs matching a role.
 static func get_jobs_for_role(role: Role) -> Array[Job]:
 	match role:
@@ -124,10 +135,12 @@ static func get_jobs_for_role(role: Role) -> Array[Job]:
 		Role.PHYS_RANGED: return [Job.BRD, Job.MCH, Job.DNC]
 		Role.CASTER: return [Job.BLM, Job.SMN, Job.RDM, Job.PCT]
 		_: return []
-		
+
+
 static func get_role_for_job(job: Job) -> Role:
 	return simplify_detailed_role(get_detailed_role_for_job(job))
-	
+
+
 static func get_detailed_role_for_job(job: Job) -> Role:
 	match job:
 		Job.PLD, Job.WAR, Job.DRK, Job.GNB:
@@ -145,6 +158,7 @@ static func get_detailed_role_for_job(job: Job) -> Role:
 		_:
 			return Role.NONE
 
+
 # Takes a detailed role (e.g. "pure healer") and turns it into a general role (e.g. "healer")
 static func simplify_detailed_role(detailed_role: Role) -> Role:
 	match detailed_role:
@@ -159,12 +173,15 @@ static func simplify_detailed_role(detailed_role: Role) -> Role:
 		_:
 			return Role.NONE
 
+			
 ##########
 ## Buffs and debuffs
 ##########
 
+
 signal buff_added(buff: BuffData, instance: BuffInstance)
 signal buff_removed(buff: BuffData, instance: BuffInstance)
+
 
 # Maps buffs onto instances. Key: BuffData, Value: BuffInstance
 var _buff_instances: Dictionary
@@ -191,8 +208,27 @@ func get_active_buffs() -> Array[BuffData]:
 	var cast_array: Array[BuffData]
 	cast_array.assign(_buff_instances.keys())
 	return cast_array
+	
+
+func has_buff(buff: BuffData) -> bool:
+	return _buff_instances.has(buff)
 
 
 func get_buff_instance(buff: BuffData) -> BuffInstance:
 	assert(_buff_instances.has(buff), "Could not find instance of buff %s on player %s." % [buff, self])
 	return _buff_instances[buff] if _buff_instances.has(buff) else null
+
+
+##########
+## Death
+##########
+
+
+signal dead_changed()
+
+
+var dead: bool = false:
+	get: return dead
+	set(value):
+		dead = value
+		dead_changed.emit()
