@@ -4,9 +4,6 @@ class_name ScriptedSequence extends Node
 
 # The index of the step we are currently on.
 var __current_step: int = -1
-func get_num_steps() -> int:
-	assert(false, "get_num_steps() must be overridden within a sequence subclass.")
-	return -1
 
 # The index of the state we are currently in within the step. If a sequence uses states, it is expected that it will
 #   wrap this in an enum for clarity's sake.

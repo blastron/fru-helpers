@@ -220,12 +220,9 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 			
 		State.RESOLVING:
 			# Resolution has finished.
-			if __intended_locator != null and __selected_locator != __intended_locator:
-				# The user made the wrong choice. Display an error.
-				jump_to_state(current_step, State.STRAT_FAILED)
-			elif current_step < get_num_steps() - 1:
-				# The user made the correct choice, and we still have steps to go. Move to the next one.
-				jump_to_state(current_step + 1, State.SETTING_UP)
+			var next_step_id: int = _get_next_step(current_step)
+			if next_step_id >= 0:
+				jump_to_state(next_step_id, State.SETTING_UP)
 			else:
 				# The user has completed the strat.
 				jump_to_state(current_step, State.STRAT_COMPLETE)
@@ -366,14 +363,23 @@ func _process_resolution(step_id: int, substep_id: int, delta: float) -> void:
 ##########
 
 
+# Gets index of the next step. Returns -1 if there is no next step to advance to, either because the strat is complete
+#   or because the player failed the mechanic.
+func _get_next_step(step_id: int) -> int:
+	assert(false, "get_next_step() must be overridden within a strat subclass.")
+	return -1
+	
+
 ##########
 ## TOKENS
 ##########
+
 
 # Finds the first token that has the given tag. If none exists, returns null.
 func find_token_by_tag(tag: String) -> Token:
 	var found_tokens: Array[Token] = find_tokens_by_tag(tag)
 	return found_tokens[0] if not found_tokens.is_empty() else null
+
 
 # Finds all tokens that have the given tag.
 func find_tokens_by_tag(tag: String) -> Array[Token]:
@@ -385,12 +391,14 @@ func find_tokens_by_tag(tag: String) -> Array[Token]:
 			matching_tokens.append(token)
 	return matching_tokens
 
-# Retrieves the token belonging to the player matching this 
+
+# Retrieves the token belonging to the player matching the given criteria
 func get_player_token(role: PlayerData.Role, group: PlayerData.Group) -> PlayerToken:
 	for token in player_tokens:
 		if (token.player_data.role == role or token.player_data.detailed_role == role) and token.player_data.group == group:
 			return token
 	return null
+
 
 # Get all tokens belonging to all players except the querier
 func get_other_player_tokens(query_player: PlayerToken) -> Array[PlayerToken]:
@@ -400,11 +408,14 @@ func get_other_player_tokens(query_player: PlayerToken) -> Array[PlayerToken]:
 		output.remove_at(query_index)
 	return output
 	
+	
 ##########
 ## INDICATORS
 ##########
 
+
 var __permanent_indicators: Dictionary
+
 
 func __destroy_indicator(name: String, fade_time: float) -> void:
 	if not __permanent_indicators.has(name):
@@ -416,7 +427,9 @@ func __destroy_indicator(name: String, fade_time: float) -> void:
 
 	if fade_time > 0: add_dependency(found_indicator)
 	
+	
 ## CONES
+
 
 func create_cone(name: String, position: Vector2, rotation: float, radius: float, arc_width: float, color: Color,
 		lifespan: float = 0) -> Cone:
@@ -435,10 +448,13 @@ func create_cone(name: String, position: Vector2, rotation: float, radius: float
 	
 	return cone
 
+	
 func destroy_cone(name: String, fade_time: float = 0) -> void:
 	__destroy_indicator(name, fade_time)
 
+	
 ## CIRCLES
+
 
 func create_circle(name: String, position: Vector2, radius: float, invert: bool, color: Color, lifespan: float = 0) -> Circle:
 	if lifespan <= 0 and __permanent_indicators.has(name):
@@ -454,7 +470,8 @@ func create_circle(name: String, position: Vector2, radius: float, invert: bool,
 	else: add_dependency(circle)
 
 	return circle
-	
+
+
 func destroy_pool(name: String, fade_time: float = 0) -> void:
 	__destroy_indicator(name, fade_time)
 	
@@ -462,7 +479,9 @@ func destroy_pool(name: String, fade_time: float = 0) -> void:
 ## TETHERS
 # TODO: should tethers be indicators?? probably
 
+
 var __spawned_tethers: Dictionary
+
 
 # Creates a tether between two tokens. If instant is set to false, adds the animation to the dependencies.
 func create_tether(name: String, token_a: Token, token_b: Token, color: Color, instant: bool = false) -> Tether:
@@ -479,6 +498,7 @@ func create_tether(name: String, token_a: Token, token_b: Token, color: Color, i
 	__spawned_tethers[name] = new_tether
 	return new_tether
 	
+
 # Destroys the tether with the given name. If instant is set to false, adds the animation to the dependencies.
 func destroy_tether(name: String, instant: bool = false) -> void:
 	if not __spawned_tethers.has(name):
@@ -491,6 +511,7 @@ func destroy_tether(name: String, instant: bool = false) -> void:
 	if not instant: add_dependency(found_tether)
 	found_tether.destroy(instant)
 
+
 # Finds a tether with the given name. Asserts if one is not found.
 func find_tether(name: String) -> Tether:
 	assert(__spawned_tethers.has(name), "Attempted to find a tether named %s, but none existed." % name)
@@ -501,32 +522,39 @@ func find_tether(name: String) -> Tether:
 func set_delay(time: float) -> void:
 	add_dependency(TimerTask.new(time))
 
+
 ##########
 ## QUERIES
 ##########
+
 
 func __compare_distance(a: Token, b: Token, query_location: Vector2, ascending: bool) -> bool:
 	var dist_a: float = query_location.distance_squared_to(a.position)
 	var dist_b: float = query_location.distance_squared_to(b.position)
 	var a_closer: bool = dist_a < dist_b
 	return a_closer if ascending else not a_closer
-	
+
+
 func sort_by_distance(options: Array[Token], query_location: Vector2, ascending: bool) -> Array[Token]:
 	var sort_lambda = func(a: Token, b: Token): return __compare_distance(a, b, query_location, ascending)
 	var sorted_options: Array[Token] = options.duplicate()
 	sorted_options.sort_custom(sort_lambda)
 	return sorted_options
 	
+
 func __get_by_distance(options: Array[Token], in_quantity: int, query_location: Vector2, ascending: bool) -> Array[Token]:
 	var sorted_options: Array[Token] = sort_by_distance(options, query_location, ascending)
 	var quantity: int = min(in_quantity, len(sorted_options))
 	return sorted_options.slice(0, quantity)
 
+
 func filter_closest(options: Array[Token], quantity: int, query_location: Vector2) -> Array[Token]:
 	return __get_by_distance(options, quantity, query_location, true)
 
+
 func filter_farthest(options: Array[Token], quantity: int, query_location: Vector2) -> Array[Token]:
 	return __get_by_distance(options, quantity, query_location, false)
+
 
 func filter_in_cone(options: Array[Token], position: Vector2, rotation: float, radius: float, arc_width: float) -> Array[Token]:
 	var forward: Vector2 = Vector2(cos(rotation), sin(rotation))
@@ -540,5 +568,3 @@ func filter_in_cone(options: Array[Token], position: Vector2, rotation: float, r
 			output.append(option)
 		
 	return output
-		
-	

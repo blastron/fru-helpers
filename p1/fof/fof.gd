@@ -20,6 +20,13 @@ var _clone_3: Thancred
 @export var _prey_debuff: BuffData
 
 
+enum Step {
+	CONGA_LINE,
+	TETHER_ONE, TETHER_TWO, TETHER_THREE, TETHER_FOUR,
+	SHOT_ONE, SHOT_TWO, SHOT_THREE, SHOT_FOUR
+}
+
+
 func _ready() -> void:
 	_thancred = find_child("thancred") # This is Thancred.
 	_clone_1 = find_child("clone NW")
@@ -28,16 +35,15 @@ func _ready() -> void:
 	
 	super()
 
-func get_num_steps() -> int:
-	return 9
 
 ##########
 ## SETUP
 ##########
 
+
 func _enter_setup(step_id: int, substep_id: int) -> void:
 	match step_id:
-		0:
+		Step.CONGA_LINE:
 			# Teleport all players to their starting locations.
 			_assign_conga_spot(PlayerData.Role.RANGED, PlayerData.Group.GROUP_ONE, 0)
 			_assign_conga_spot(PlayerData.Role.HEALER, PlayerData.Group.GROUP_ONE, 1)
@@ -48,13 +54,13 @@ func _enter_setup(step_id: int, substep_id: int) -> void:
 			_assign_conga_spot(PlayerData.Role.HEALER, PlayerData.Group.GROUP_TWO, 6)
 			_assign_conga_spot(PlayerData.Role.RANGED, PlayerData.Group.GROUP_TWO, 7)
 			finish_state()
-		1:
+		Step.TETHER_ONE:
 			# Assign first tether.
 			var tether_type: String = "fire" if _use_fixed_data() else ["fire", "lightning"].pick_random()
 			var player: PlayerToken = _pick_tether_player(PlayerData.Role.HEALER, PlayerData.Group.GROUP_TWO)
 			_assign_tether(player, _thancred, tether_type, 0)
 			finish_state()
-		2:
+		Step.TETHER_TWO:
 			# Assign second tether.
 			match substep_id:
 				0:
@@ -67,7 +73,7 @@ func _enter_setup(step_id: int, substep_id: int) -> void:
 					_assign_tether(player, _clone_1, tether_type, 1)
 					finish_state()
 			
-		3:
+		Step.TETHER_THREE:
 			# Assign third tether.
 			match substep_id:
 				0:
@@ -79,7 +85,7 @@ func _enter_setup(step_id: int, substep_id: int) -> void:
 					var player: PlayerToken = _pick_tether_player(PlayerData.Role.HEALER, PlayerData.Group.GROUP_ONE)
 					_assign_tether(player, _clone_2, tether_type, 2)
 					finish_state()
-		4:
+		Step.TETHER_FOUR:
 			# Assign fourth tether.
 			match substep_id:
 				0:
@@ -102,26 +108,27 @@ func _enter_setup(step_id: int, substep_id: int) -> void:
 
 					finish_state()
 		
-		5:
+		Step.SHOT_ONE:
 			# Deactivate first tether and add fetters. Boss turns to face first tether target.
 			_clear_tether(0)
 			_thancred.face_location(find_token_by_tag(_tether_tags[0]).position)
 	
 			finish_state()
-		6:
+		Step.SHOT_TWO:
 			# Deactivate second tether and add fetters. Boss turns to face OT.
 			_clear_tether(1)
 			_thancred.set_aggro_target(get_player_token(PlayerData.Role.TANK, PlayerData.Group.GROUP_TWO))
 	
 			finish_state()
-		7:
+		Step.SHOT_THREE:
 			# Deactivate third tether and add fetters.
 			_clear_tether(2)
 			finish_state()
-		8:
+		Step.SHOT_FOUR:
 			# Deactivate fourth tether and add fetters.
 			_clear_tether(3)
 			finish_state()
+
 
 func _assign_conga_spot(role: PlayerData.Role, group: PlayerData.Group, spot: int):
 	var player_token: PlayerToken = get_player_token(role, group)
@@ -130,6 +137,7 @@ func _assign_conga_spot(role: PlayerData.Role, group: PlayerData.Group, spot: in
 	var locator: Locator = get_locator(_conga_spots[spot])
 	player_token.teleport_to_locator(locator)
 	
+
 # Randomly pick an untethered player.
 func _pick_tether_player(fixed_role: PlayerData.Role, fixed_group: PlayerData.Group) -> PlayerToken:
 	if _use_fixed_data():
@@ -143,6 +151,7 @@ func _pick_tether_player(fixed_role: PlayerData.Role, fixed_group: PlayerData.Gr
 	
 	return null
 
+
 # Apply a tether between a player and a specific clone and wait for it to animate in.
 func _assign_tether(player: PlayerToken, clone: Thancred, tether_type: String, tether_number: int) -> void:
 	player.add_tag(_tether_tags[tether_number])
@@ -153,6 +162,7 @@ func _assign_tether(player: PlayerToken, clone: Thancred, tether_type: String, t
 
 	var color: Color = _fire_color if tether_type == "fire" else _lightning_color
 	create_tether(_tether_tags[tether_number], player, clone, color)
+
 
 # Clear the given tether and wait for it to animate out.
 func _clear_tether(tether_number: int):
@@ -167,22 +177,28 @@ func _clear_tether(tether_number: int):
 ## MOVEMENT
 ##########
 
+
 func _get_active_locator_ids(step_id: int) -> Array[String]:
 	match step_id:
-		1, 2, 3, 4:
+		Step.TETHER_ONE, Step.TETHER_TWO, Step.TETHER_THREE, Step.TETHER_FOUR:
 			return [
 				"west_center", "west_out", "west_north", "west_south",
 				"east_center", "east_out", "east_north", "east_south"
 			]
-		5:
+		Step.SHOT_ONE:
 			return [
 				"west_out", "west_south", "east_south", "east_out"
 			]
-		6:
-			return ["west_center", "west_north"]
-		7:
-			return ["east_center", "east_north"]
+		Step.SHOT_TWO:
+			return [
+				"west_center", "west_north"
+			]
+		Step.SHOT_THREE:
+			return [
+				"east_center", "east_north"
+			]
 	return []
+
 
 func _get_movement_orders(step_id: int, selected_locator: Locator = null) -> Array[MovementOrder]:
 	var target_1: Token = find_token_by_tag(_tether_tags[0])
@@ -191,19 +207,19 @@ func _get_movement_orders(step_id: int, selected_locator: Locator = null) -> Arr
 	var target_4: Token = find_token_by_tag(_tether_tags[3])
 	
 	match step_id:
-		1:
+		Step.TETHER_ONE:
 			var destination: String = "west_north" if target_1.has_tag("fire") else "west_center"
 			return [MovementOrder.new(target_1, get_locator(destination))]
-		2:
+		Step.TETHER_TWO:
 			var destination: String = "east_north" if target_2.has_tag("fire") else "east_center"
 			return [MovementOrder.new(target_2, get_locator(destination))]
-		3:
+		Step.TETHER_THREE:
 			var destination: String = "west_center" if target_1.has_tag("fire") else "west_north"
 			return [MovementOrder.new(target_3, get_locator(destination))]
-		4:
+		Step.TETHER_FOUR:
 			var destination: String = "east_center" if target_2.has_tag("fire") else "east_north"
 			return [MovementOrder.new(target_4, get_locator(destination))]
-		5:
+		Step.SHOT_ONE:
 			# Move all remaining players to their fuss-free static positions
 			return [
 				MovementOrder.new(find_token_by_tag(_bait_tags[0]), get_locator("west_out")),
@@ -211,7 +227,7 @@ func _get_movement_orders(step_id: int, selected_locator: Locator = null) -> Arr
 				MovementOrder.new(find_token_by_tag(_bait_tags[2]), get_locator("east_south")),
 				MovementOrder.new(find_token_by_tag(_bait_tags[3]), get_locator("east_out"))
 			]
-		6:
+		Step.SHOT_TWO:
 			# Swap tethers 1 and 3 if needed
 			var destination_1: String = "west_center" if target_3.has_tag("fire") else "west_north"
 			var destination_3: String = "west_north" if target_3.has_tag("fire") else "west_center"
@@ -219,7 +235,7 @@ func _get_movement_orders(step_id: int, selected_locator: Locator = null) -> Arr
 				MovementOrder.new(target_1, get_locator(destination_1)),
 				MovementOrder.new(target_3, get_locator(destination_3))
 			]
-		7:
+		Step.SHOT_THREE:
 			# Swap tethers 2 and 4 if needed
 			var destination_2: String = "east_center" if target_4.has_tag("fire") else "east_north"
 			var destination_4: String = "east_north" if target_4.has_tag("fire") else "east_center"
@@ -229,27 +245,28 @@ func _get_movement_orders(step_id: int, selected_locator: Locator = null) -> Arr
 			]
 	return []
 
+
 ##########
 ## RESOLUTION
 ##########
 
-const clone_dash_distance: float = 50
 
 func _enter_resolution(step_id: int, substep_id: int) -> void:
 	match step_id:
-		0, 1, 2, 3, 4:
+		Step.CONGA_LINE, Step.TETHER_ONE, Step.TETHER_TWO, Step.TETHER_THREE, Step.TETHER_FOUR:
 			# No resolution yet.
 			finish_state()
-		5:
+		Step.SHOT_ONE:
 			_resolve_tether(0, substep_id)
-		6:
+		Step.SHOT_TWO:
 			_resolve_tether(1, substep_id)
-		7:
+		Step.SHOT_THREE:
 			_resolve_tether(2, substep_id)
-		8:
+		Step.SHOT_FOUR:
 			_resolve_tether(3, substep_id)
 		_:
 			finish_state()
+
 
 func _resolve_tether(tether_number: int, substep: int) -> void:
 	if tether_number == 0:
@@ -271,7 +288,8 @@ func _resolve_tether(tether_number: int, substep: int) -> void:
 				add_dependency(clone)
 				clone.on_stage = false
 				finish_state()
-		
+
+
 func _launch_cones(tether_number: int) -> void:
 	var target: PlayerToken = find_token_by_tag(_tether_tags[tether_number]) as PlayerToken
 	var is_fire: bool = target.has_tag("fire")
@@ -293,3 +311,13 @@ func _launch_cones(tether_number: int) -> void:
 		var victims: Array[Token] = filter_in_cone(other_players, origin, rotation, 10000, arc_width)
 		for victim in victims:
 			create_circle("", victim.position, 50, false, Color.WHITE, 1)
+
+		
+##########
+## FAILURE/COMPLETION
+##########
+
+
+func _get_next_step(current_step: int) -> int:
+	if current_step == Step.SHOT_FOUR: return -1
+	else: return current_step + 1
