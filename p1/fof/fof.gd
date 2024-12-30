@@ -212,7 +212,7 @@ func _needs_user_decision(step_id: int) -> bool:
 		Step.MOVE_TO_BAITS: return user_token.has_any_tag(_bait_tags)
 		# Initial and secondary tether players change spots, if needed.
 		Step.SHOT_TWO: return user_token.has_any_tag([_tether_tags[0], _tether_tags[2]])
-		Step.SHOT_THREE: return user_token.has_any_tag([_tether_tags[0], _tether_tags[2]])
+		Step.SHOT_THREE: return user_token.has_any_tag([_tether_tags[1], _tether_tags[3]])
 		
 	return false
 
@@ -222,25 +222,25 @@ func _get_active_locators(step_id: int) -> Array[Locator]:
 		Step.TETHER_ONE, Step.TETHER_TWO, Step.TETHER_THREE, Step.TETHER_FOUR:
 			# Tethered players move to their spots.
 			return [
-			_locator_west_center, _locator_west_out, _locator_west_north, _locator_west_south,
-			_locator_east_center, _locator_east_out, _locator_east_north, _locator_east_south
+				_locator_west_center, _locator_west_out, _locator_west_north, _locator_west_south,
+				_locator_east_center, _locator_east_out, _locator_east_north, _locator_east_south
 			]
 		Step.MOVE_TO_BAITS: # Conga players move into spots.
 			return [
-			_locator_west_out, _locator_west_south, _locator_east_south, _locator_east_out
+				_locator_west_out, _locator_west_south, _locator_east_south, _locator_east_out
 			]
 		Step.SHOT_TWO: # West side tethers swap.
 			return [
-			_locator_west_center, _locator_west_north
+				_locator_west_center, _locator_west_out, _locator_west_north, _locator_west_south,
 			]
 		Step.SHOT_THREE: # East side tethers swap.
 			return [
-			_locator_east_center, _locator_east_north
+				_locator_east_center, _locator_east_out, _locator_east_north, _locator_east_south
 			]
 		_: return []
 
-		
-func _get_valid_movements(step_id: int, user_selection: Locator = null) -> Dictionary:
+
+func _get_valid_movements(step_id: int) -> Dictionary:
 	var target_1: Token = find_token_by_tag(_tether_tags[0])
 	var target_2: Token = find_token_by_tag(_tether_tags[1])
 	var target_3: Token = find_token_by_tag(_tether_tags[2])
@@ -256,14 +256,24 @@ func _get_valid_movements(step_id: int, user_selection: Locator = null) -> Dicti
 			return { target_2 : [destination] }
 			
 		Step.TETHER_THREE:
-			var destination: Locator = _locator_west_center if target_1.has_tag("fire") else _locator_west_north
-			return { target_3 : [destination] }
+			# If either of the cone target positions is occupied, move to the other one. This will put us in the correct
+			#   spot for us to bait the first player's cones if the first player moved correctly. If neither cone
+			#   position is occupied, move to the correct one.
+			if _locator_west_center.occupants.is_empty(): return { target_3 : [_locator_west_center] }
+			elif _locator_west_north.occupants.is_empty(): return { target_3 : [_locator_west_north] }
+			else:
+				var destination: Locator = _locator_west_center if target_1.has_tag("fire") else _locator_west_north
+				return { target_3 : [destination] }
 			
 		Step.TETHER_FOUR:
-			var destination: Locator = _locator_east_center if target_2.has_tag("fire") else _locator_east_north
-			return { target_4 : [destination] }
+			# As above, but on the east side.
+			if _locator_east_center.occupants.is_empty(): return { target_4 : [_locator_east_center] }
+			elif _locator_east_north.occupants.is_empty(): return { target_4 : [_locator_east_north] }
+			else:
+				var destination: Locator = _locator_east_center if target_2.has_tag("fire") else _locator_east_north
+				return { target_4 : [destination] }
 			
-		Step.SHOT_ONE:
+		Step.MOVE_TO_BAITS:
 			# Move all remaining players to their fuss-free static positions
 			return {
 				find_token_by_tag(_bait_tags[0]) : [_locator_west_out],
@@ -290,6 +300,33 @@ func _get_valid_movements(step_id: int, user_selection: Locator = null) -> Dicti
 			}
 	
 	return {}
+
+
+func _get_actual_movements(step_id: int, user_selection: Locator) -> Dictionary:
+	if user_selection:
+		var target_1: Token = find_token_by_tag(_tether_tags[0])
+		var target_2: Token = find_token_by_tag(_tether_tags[1])
+		var target_3: Token = find_token_by_tag(_tether_tags[2])
+		var target_4: Token = find_token_by_tag(_tether_tags[3])
+		
+		# If the user is one of the tether targets, and it's their turn to swap, ignore the actual results and instead
+		#   have the player swap with whoever is at their target location.
+		var first_swap: bool = step_id == Step.SHOT_TWO and (user_token == target_1 or user_token == target_3)
+		var second_swap: bool = step_id == Step.SHOT_THREE and (user_token == target_2 or user_token == target_4)
+		if first_swap or second_swap:
+			if user_selection.occupants.is_empty():
+				# Failsafe for if the user somehow selects an empty spot.
+				return { user_token : user_selection }
+			elif user_selection.occupants[0] == user_token:
+				# The user is not swapping.
+				return {}
+			elif user_token.current_locator != null:
+				return {
+					user_token : user_selection,
+					user_selection.occupants[0] : user_token.current_locator
+				}
+			
+	return super._get_actual_movements(step_id, user_selection)
 
 
 ##########
@@ -352,7 +389,7 @@ func _launch_cones(tether_number: int) -> void:
 
 	var origin: Vector2 = target.position
 	
-	var other_players: Array[Token] = _downcast_player_tokens(get_other_player_tokens(target))
+	var other_players: Array[Token] = _downcast_player_tokens(filter_living_only(get_other_player_tokens(target)))
 	var baits: Array[Token] = filter_closest(other_players, 1 if is_fire else 3, target.position)
 	
 	var hit_players: Array[PlayerToken]
@@ -374,7 +411,8 @@ func _launch_cones(tether_number: int) -> void:
 	# TODO: The fussless strat is super forgiving and lets the middle player stand basically wherever. We need to cheat here.
 	if is_fire and len(hit_players) < 4:
 		for player in hit_players:
-			player.player_data.add_buff(_ruin_debuff)
+			if not player.player_data.has_buff(_ruin_debuff):
+				player.player_data.add_buff(_ruin_debuff)
 
 
 func _apply_damage(target: PlayerToken) -> void:

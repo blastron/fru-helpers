@@ -130,26 +130,16 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 						print("Waiting for next button press on step %d..." % new_step)
 			
 		State.PLAYER_MOVEMENT:
-			# Iterate through all of our players and move them to their selected locations.
-			var valid_movements: Dictionary = _get_valid_movements(new_step, __selected_locator)
+			# Iterate through all players that have reported movement and move them to their selected locations.
+			var movements: Dictionary = _get_actual_movements(new_step, __selected_locator)
 			var total_moves: int = 0
-			for key in valid_movements.keys():
-				var destinations: Array[Locator]
-				destinations.assign(valid_movements[key])
-				if destinations.is_empty(): continue
-
-				var player: PlayerToken = key
-				if len(destinations) > 1:
-					# In the case where multiple locations are valid, pick the one that is closest to the player's
-					#   current position. We're assuming here that all returned locations are equally valid, and that
-					#   any logic around avoiding combinations will have already happened in _get_valid_movements().
-					destinations = sort_locators_by_distance(destinations, player.position, true)
-
-				var selected_destination: Locator = destinations[0]
-				
-				add_dependency(player)
+			for key in movements.keys():
+				var player_token: PlayerToken = key
+				var destination: Locator = movements[key]
+			
+				add_dependency(player_token)
+				player_token.move_to_locator(destination)
 				total_moves += 1
-				player.move_to_locator(selected_destination)
 			
 			if total_moves <= 0:
 				# No player movement is necessary. Skip straight to step resolution.
@@ -232,6 +222,7 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 			if _needs_user_decision(current_step):
 				jump_to_state(current_step, State.WAITING_FOR_DECISION)
 			else:
+				__selected_locator = null
 				jump_to_state(current_step, State.PLAYER_MOVEMENT)
 			
 		State.WAITING_FOR_DECISION:
@@ -316,10 +307,43 @@ func _needs_user_decision(step_id: int) -> bool:
 #   respond to the user's choice. This function will still return a result for the player, and it may not necessarily
 #   match the user's choice, depending on how the strat is authored.
 # Returns a dictionary whose keys are PlayerTokens and whose values are Array[Locator].
-func _get_valid_movements(step_id: int, user_selection: Locator = null) -> Dictionary:
+func _get_valid_movements(step_id: int) -> Dictionary:
 	# Override this in your strat.
 	assert(false, "_get_valid_movements() must be overridden in a strat.")
 	return {}
+
+
+# Gets a specific location for each player to move to. By default, this queries _get_valid_movements() and picks the
+#   closest locator to the token, except for the user's token, for which we will return the user's selection, if any.
+# Strats may override this to provide different behavior based on the user's selection. Note that it is valid to have
+#   the user's token go to a location other than their selection, if desired.
+func _get_actual_movements(step_id: int, user_selection: Locator) -> Dictionary:
+	var output: Dictionary = {}
+	var valid_movements: Dictionary = _get_valid_movements(step_id)
+	for key in valid_movements.keys():
+		var player_token: PlayerToken = key
+		if player_token.player_data.dead:
+			# Dead players do not move.
+			continue
+	
+		if player_token == user_token and user_selection != null:
+			output[player_token] = user_selection
+			continue
+		
+		if valid_movements[key].is_empty(): continue
+	
+		var destinations: Array[Locator]
+		destinations.assign(valid_movements[key])
+
+		if len(destinations) > 1:
+			# In the case where multiple locations are valid, pick the one that is closest to the player's
+			#   current position. We're assuming here that all returned locations are equally valid, and that
+			#   any logic around avoiding combinations will have already happened in _get_valid_movements().
+			destinations = sort_locators_by_distance(destinations, player_token.position, true)
+
+		output[player_token] = destinations[0]
+	
+	return output
 
 	
 ##########
@@ -444,6 +468,13 @@ func get_other_player_tokens(query_player: PlayerToken) -> Array[PlayerToken]:
 	var query_index: int = output.find(query_player)
 	if query_index != -1:
 		output.remove_at(query_index)
+	return output
+
+
+# Returns the subset of player tokens that are alive.
+func filter_living_only(query_tokens: Array[PlayerToken]) -> Array[PlayerToken]:
+	var output: Array[PlayerToken] = query_tokens.duplicate()
+	output.filter(func(player: PlayerToken): return not player.player_data.dead)
 	return output
 
 
