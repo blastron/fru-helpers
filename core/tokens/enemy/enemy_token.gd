@@ -123,7 +123,7 @@ func approach_position(target_location: Vector2, radius_override: float = -1, sp
 
 @export var hitbox_radius: float:
 	get:
-		return _hitbox.radius if _hitbox else 0
+		return _hitbox.radius if _hitbox else 0.0
 	set(value):
 		if _hitbox:
 			_hitbox.radius = value

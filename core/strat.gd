@@ -1,15 +1,21 @@
 class_name Strat extends ScriptedSequence
 
+
+# UI elements
 @export var description_pane: DescriptionPane
 
+# Layers
 @export var indicator_layer: Node2D
 @export var token_layer: Node2D
 @export var player_layer: Node2D
 
+# Subscene types
 @export var __player_token_type: PackedScene
+
 
 var player_tokens: Array[PlayerToken]
 var user_token: PlayerToken = null
+
 
 enum Mode {
 	EXPLANATION,			# Explaining the strat at a high level to the user using fixed information.
@@ -17,6 +23,7 @@ enum Mode {
 	PRACTICE				# The user is playing through the mechanic without assistance.
 }
 var _mode : Mode = Mode.PRACTICE
+
 
 enum State {
 	SETTING_UP,				# Playing out the mechanic's setup step.
@@ -27,6 +34,8 @@ enum State {
 	STRAT_COMPLETE			# The strat was successfully completed.
 }
 
+
+# Gets the name of the state for logging purposes.
 func get_state_name(state: State) -> String:
 	match state:
 		State.SETTING_UP:
@@ -91,6 +100,7 @@ func __create_player_tokens() -> void:
 func jump_to_first_state() -> void:
 	jump_to_state(0, State.SETTING_UP)
 
+
 func on_state_entered(new_step: int, new_state: int, previous_step: int, previous_state: int) -> void:
 	# Disable user input by default. Individual states should re-enable it as necessary.
 	__deactivate_locators()
@@ -110,30 +120,43 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 					#   the user to press the Next button.
 					description_pane.next_button.disabled = false
 					print("Waiting for next button press on step %d..." % new_step)
-				Mode.TUTORIAL:
-					__activate_locators()
-					print("Waiting for tutorial locator press on step %d..." % new_step)
-				Mode.PRACTICE:
-					__activate_locators()
-					print("Waiting for locator press on step %d..." % new_step)
+				Mode.TUTORIAL, Mode.PRACTICE:
+					# Activate any locators associated with this step.
+					if __try_activate_locators():
+						print("Waiting for locator press on step %d..." % new_step)
+					else:
+						# No locators were activated, but we're still waiting for input. Show the Next button.
+						description_pane.next_button.disabled = false
+						print("Waiting for next button press on step %d..." % new_step)
 			
 		State.PLAYER_MOVEMENT:
-			# Retrieve movement orders. Note that we don't early-out if we have zero orders, as we want to run through
-			#   the same code path as if all movements were completed, which will happen on the next tick.
-			var movement_orders: Array[MovementOrder] = _get_movement_orders(new_step, __selected_locator)
+			# Iterate through all of our players and move them to their selected locations.
+			var valid_movements: Dictionary = _get_valid_movements(new_step, __selected_locator)
+			var total_moves: int = 0
+			for key in valid_movements.keys():
+				var destinations: Array[Locator]
+				destinations.assign(valid_movements[key])
+				if destinations.is_empty(): continue
+
+				var player: PlayerToken = key
+				if len(destinations) > 1:
+					# In the case where multiple locations are valid, pick the one that is closest to the player's
+					#   current position. We're assuming here that all returned locations are equally valid, and that
+					#   any logic around avoiding combinations will have already happened in _get_valid_movements().
+					destinations = sort_locators_by_distance(destinations, player.position, true)
+
+				var selected_destination: Locator = destinations[0]
 				
-			if movement_orders.is_empty():
+				add_dependency(player)
+				total_moves += 1
+				player.move_to_locator(selected_destination)
+			
+			if total_moves <= 0:
 				# No player movement is necessary. Skip straight to step resolution.
 				print("No movement was necessary for step %d. Skipping to resolution." % new_step)
 				jump_to_state(new_step, State.RESOLVING)
 			else:
-				# Issue movement orders to all tokens and mark them as dependencies. Then, since this step has no other
-				#   logic to run, mark us as being finished.
-				for movement_order in movement_orders:
-					if movement_order.locator != null:
-						add_dependency(movement_order.player)
-						movement_order.player.move_to_locator(movement_order.locator)
-				print("Waiting on %d player movements for step %d..." % [len(movement_orders), new_step])
+				print("Waiting on %d player movements for step %d..." % [total_moves, new_step])
 				finish_state()
 			
 		State.RESOLVING:
@@ -147,6 +170,7 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 		State.STRAT_COMPLETE:
 			# todo
 			pass
+			
 		_:
 			assert(false, "Unknown state entered!")
 
@@ -246,7 +270,8 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 
 func _nav_prev() -> void:
 	pass
-	
+
+
 func _nav_next() -> void:
 	if _current_state == State.WAITING_FOR_DECISION:
 		# We were waiting for a movement decisision. The next button submits a decision of "no decision".
@@ -261,11 +286,13 @@ func _nav_next() -> void:
 # Whether to use fixed data when determining random events in a mechanic.
 func _use_fixed_data() -> bool:
 	return _mode == Mode.EXPLANATION
-	
+
+
 func _enter_setup(step_id: int, substep_id: int) -> void:
 	# Override this in your strat.
 	assert(false, "_enter_setup must be overridden in a strat.")
 	finish_state()
+
 
 func _process_setup(step_id: int, substep_id: int, delta: float) -> void:
 	# Override this in your strat if you want any processing to happen.
@@ -277,31 +304,22 @@ func _process_setup(step_id: int, substep_id: int, delta: float) -> void:
 ##########
 
 
-# Returns whether the user needs to make a decision on this step.
+# Returns whether the user needs to make a decision on this step. Override this in your strat.
 func _needs_user_decision(step_id: int) -> bool:
-	return _mode == Mode.EXPLANATION or not _get_permissible_moves(step_id).is_empty()
+	return step_id == 0 or _mode == Mode.EXPLANATION
 
-# Gets a list of locators that the user may move to during this step. By default, queries the list of movement orders
-#   for this step and returns the one matching the user's token.
-# If no moves are returned, the player is assumed to not have to make a movement decision on this step.
-func _get_permissible_moves(step_id: int) -> Array[Locator]:
-	if user_token == null:
-		return []
 
-	var output: Array[Locator]
-	var movement_orders: Array[MovementOrder] = _get_movement_orders(step_id, null)
-	for order in movement_orders:
-		if order.player == user_token and order.locator != null:
-			output.append(order.locator)
-		
-	return output
-
-# Gets the locations players should move to during this step. Not all players need to have a location provided if they
-#   do not need to move. Optionally, can read the selected locator so that if the user inputs an incorrect solution,
-#   the other players can behave accordingly.
-func _get_movement_orders(step_id: int, selected_locator: Locator = null) -> Array[MovementOrder]:
+# Gets lists of valid locations that each player can move to. If a player either is not part of the output or if they
+#   have an empty list of locations, it is assumed that they should not move. Conversely, if multiple locations are
+#   returned, it is assumed that it is valid to send that player to any of them.
+# Optionally, the locator selected by the user may be passed in to this function, so as to have movement decisions
+#   respond to the user's choice. This function will still return a result for the player, and it may not necessarily
+#   match the user's choice, depending on how the strat is authored.
+# Returns a dictionary whose keys are PlayerTokens and whose values are Array[Locator].
+func _get_valid_movements(step_id: int, user_selection: Locator = null) -> Dictionary:
 	# Override this in your strat.
-	return []
+	assert(false, "_get_valid_movements() must be overridden in a strat.")
+	return {}
 
 	
 ##########
@@ -309,24 +327,29 @@ func _get_movement_orders(step_id: int, selected_locator: Locator = null) -> Arr
 ##########
 
 
-func get_locator(name: String) -> Locator:
-	var found_children: Array[Node] = find_children(name, "Locator")
-	return null if found_children.is_empty() else found_children[0]
-
-# Returns the IDs of the locators that should be clickable in this step. Other locators will either be deactivated or
+# Returns the list of locators that should be clickable in this step. Other locators will either be deactivated or
 #   hidden depending on their configuration.
-func _get_active_locator_ids(step_id: int) -> Array[String]:
+func _get_active_locators(step_id: int) -> Array[Locator]:
+	# Override this in your strat.
+	assert(false, "_get_active_locators() must be overridden in a strat.")
 	return []
 
-# Activates the locators for the current step, as provided by get_active_locator_ids().
-func __activate_locators() -> void:
-	if user_token != null:
+
+# Activates the locators for the current step, as provided by get_active_locator_ids(). Returns whether any locators
+#   were activated.
+func __try_activate_locators() -> bool:
+	var active_locators: Array[Locator] = _get_active_locators(__current_step)
+	var found_any_locators: bool = false
+	for locator: Locator in find_children("", "Locator"):
+		if locator in active_locators:
+			locator.state = Locator.State.ENABLED
+			found_any_locators = true
+	
+	if user_token != null and found_any_locators:
 		user_token.input_highlight = true
 	
-	var active_locators: Array[String] = _get_active_locator_ids(__current_step)
-	for locator: Locator in find_children("", "Locator"):
-		if locator.name in active_locators:
-			locator.state = Locator.State.ENABLED
+	return found_any_locators
+
 
 # Deactivates all locators.
 func __deactivate_locators() -> void:
@@ -343,6 +366,20 @@ func __locator_pressed(locator: Locator) -> void:
 		finish_state()
 
 
+func __compare_locator_distance(a: Locator, b: Locator, query_location: Vector2, ascending: bool) -> bool:
+	var dist_a: float = query_location.distance_squared_to(a.position)
+	var dist_b: float = query_location.distance_squared_to(b.position)
+	var a_closer: bool = dist_a < dist_b
+	return a_closer if ascending else not a_closer
+
+
+func sort_locators_by_distance(options: Array[Locator], query_location: Vector2, ascending: bool) -> Array[Locator]:
+	var sort_lambda = func(a: Locator, b: Locator): return __compare_locator_distance(a, b, query_location, ascending)
+	var sorted_options: Array[Locator] = options.duplicate()
+	sorted_options.sort_custom(sort_lambda)
+	return sorted_options
+
+
 ##########
 ## RESOLUTION
 ##########
@@ -352,6 +389,7 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 	# Override this in your strat.
 	assert(false, "_enter_resolution must be overridden in a strat.")
 	finish_state()
+
 
 func _process_resolution(step_id: int, substep_id: int, delta: float) -> void:
 	# Override this in your strat if you want any processing to happen.
@@ -407,6 +445,12 @@ func get_other_player_tokens(query_player: PlayerToken) -> Array[PlayerToken]:
 	if query_index != -1:
 		output.remove_at(query_index)
 	return output
+
+
+func _downcast_player_tokens(tokens: Array[PlayerToken]) -> Array[Token]:
+	var downcast_tokens: Array[Token]
+	downcast_tokens.assign(tokens)
+	return downcast_tokens
 	
 	
 ##########
@@ -417,13 +461,13 @@ func get_other_player_tokens(query_player: PlayerToken) -> Array[PlayerToken]:
 var __permanent_indicators: Dictionary
 
 
-func __destroy_indicator(name: String, fade_time: float) -> void:
-	if not __permanent_indicators.has(name):
+func __destroy_indicator(indicator_name: String, fade_time: float) -> void:
+	if not __permanent_indicators.has(indicator_name):
 		print("Attempted to remove an indicator %s, but none existed." % name)
 		return
 
-	var found_indicator: Indicator = __permanent_indicators[name]
-	__permanent_indicators.erase(name)
+	var found_indicator: Indicator = __permanent_indicators[indicator_name]
+	__permanent_indicators.erase(indicator_name)
 
 	if fade_time > 0: add_dependency(found_indicator)
 	
@@ -431,49 +475,56 @@ func __destroy_indicator(name: String, fade_time: float) -> void:
 ## CONES
 
 
-func create_cone(name: String, position: Vector2, rotation: float, radius: float, arc_width: float, color: Color,
-		lifespan: float = 0) -> Cone:
-	if lifespan <= 0 and __permanent_indicators.has(name):
-		print("Attempted to create a permanent cone named %s, but an indicator with that name already existed." % name)
-		return null
+func create_cone(indicator_name: String, position: Vector2, rotation: float, radius: float, arc_width: float,
+		color: Color, lifespan: float = 0) -> Cone:
+	var cone_name: String = "%s (cone)" % indicator_name
+	
+	if lifespan <= 0 and __permanent_indicators.has(cone_name):
+		print("Attempted to create a permanent cone named %s, but an indicator with that name already existed." %
+			indicator_name)
+		return null	
 	
 	var cone: Cone = Cone.new(radius, arc_width, color, lifespan)
-	cone.name = "%s (cone)" % name
+	cone.name = cone_name
 	cone.position = position
 	cone.rotation = rotation
 	indicator_layer.add_child(cone)
 	
-	if lifespan <= 0: __permanent_indicators[name] = cone
+	if lifespan <= 0: __permanent_indicators[cone_name] = cone
 	else: add_dependency(cone)
 	
 	return cone
 
 	
-func destroy_cone(name: String, fade_time: float = 0) -> void:
-	__destroy_indicator(name, fade_time)
+func destroy_cone(indicator_name: String, fade_time: float = 0) -> void:
+	__destroy_indicator("%s (cone)" % indicator_name, fade_time)
 
 	
 ## CIRCLES
 
 
-func create_circle(name: String, position: Vector2, radius: float, invert: bool, color: Color, lifespan: float = 0) -> Circle:
-	if lifespan <= 0 and __permanent_indicators.has(name):
-		print("Attempted to create a permanent circle named %s, but an indicator with that name already existed." % name)
+func create_circle(indicator_name: String, position: Vector2, radius: float, invert: bool, color: Color,
+		lifespan: float = 0) -> Circle:
+	var circle_name: String = "%s (cone)" % indicator_name
+	
+	if lifespan <= 0 and __permanent_indicators.has(circle_name):
+		print("Attempted to create a permanent circle named %s, but an indicator with that name already existed." %
+		circle_name)
 		return null
 
 	var circle: Circle = Circle.new(radius, invert, color, lifespan)
-	circle.name = "%s (circle)" % name
+	circle.name = "%s (circle)" % circle_name
 	circle.position = position
 	indicator_layer.add_child(circle)
 
-	if lifespan <= 0: __permanent_indicators[name] = circle
+	if lifespan <= 0: __permanent_indicators[circle_name] = circle
 	else: add_dependency(circle)
 
 	return circle
 
 
-func destroy_pool(name: String, fade_time: float = 0) -> void:
-	__destroy_indicator(name, fade_time)
+func destroy_pool(indicator_name: String, fade_time: float = 0) -> void:
+	__destroy_indicator("%s (circle)" % indicator_name, fade_time)
 	
 	
 ## TETHERS
@@ -484,40 +535,42 @@ var __spawned_tethers: Dictionary
 
 
 # Creates a tether between two tokens. If instant is set to false, adds the animation to the dependencies.
-func create_tether(name: String, token_a: Token, token_b: Token, color: Color, instant: bool = false) -> Tether:
-	if __spawned_tethers.has(name):
-		print("Attempted to create a tether named %s, but one already existed." % name)
+func create_tether(tether_name: String, token_a: Token, token_b: Token, color: Color, instant: bool = false) -> Tether:
+	if __spawned_tethers.has(tether_name):
+		print("Attempted to create a tether named %s, but one already existed." % tether_name)
 		return null
 	
 	var new_tether: Tether = Tether.new(token_a, token_b, color, instant)
-	new_tether.name = name
+	new_tether.name = tether_name
 	indicator_layer.add_child(new_tether)
 	
 	if not instant: add_dependency(new_tether)
 	
-	__spawned_tethers[name] = new_tether
+	__spawned_tethers[tether_name] = new_tether
 	return new_tether
 	
 
 # Destroys the tether with the given name. If instant is set to false, adds the animation to the dependencies.
-func destroy_tether(name: String, instant: bool = false) -> void:
-	if not __spawned_tethers.has(name):
-		print("Attempted to destroy a tether named %s, but none existed." % name)
+func destroy_tether(tether_name: String, instant: bool = false) -> void:
+	if not __spawned_tethers.has(tether_name):
+		print("Attempted to destroy a tether named %s, but none existed." % tether_name)
 		return
 	
-	var found_tether: Tether = __spawned_tethers[name]
-	__spawned_tethers.erase(name)
+	var found_tether: Tether = __spawned_tethers[tether_name]
+	__spawned_tethers.erase(tether_name)
 	
 	if not instant: add_dependency(found_tether)
 	found_tether.destroy(instant)
 
 
 # Finds a tether with the given name. Asserts if one is not found.
-func find_tether(name: String) -> Tether:
-	assert(__spawned_tethers.has(name), "Attempted to find a tether named %s, but none existed." % name)
-	return __spawned_tethers[name]
+func find_tether(tether_name: String) -> Tether:
+	assert(__spawned_tethers.has(tether_name), "Attempted to find a tether named %s, but none existed." % tether_name)
+	return __spawned_tethers[tether_name]
+
 
 ## TIMERS
+
 
 func set_delay(time: float) -> void:
 	add_dependency(TimerTask.new(time))
@@ -528,22 +581,22 @@ func set_delay(time: float) -> void:
 ##########
 
 
-func __compare_distance(a: Token, b: Token, query_location: Vector2, ascending: bool) -> bool:
+func __compare_token_distance(a: Token, b: Token, query_location: Vector2, ascending: bool) -> bool:
 	var dist_a: float = query_location.distance_squared_to(a.position)
 	var dist_b: float = query_location.distance_squared_to(b.position)
 	var a_closer: bool = dist_a < dist_b
 	return a_closer if ascending else not a_closer
 
 
-func sort_by_distance(options: Array[Token], query_location: Vector2, ascending: bool) -> Array[Token]:
-	var sort_lambda = func(a: Token, b: Token): return __compare_distance(a, b, query_location, ascending)
+func sort_tokens_by_distance(options: Array[Token], query_location: Vector2, ascending: bool) -> Array[Token]:
+	var sort_lambda = func(a: Token, b: Token): return __compare_token_distance(a, b, query_location, ascending)
 	var sorted_options: Array[Token] = options.duplicate()
 	sorted_options.sort_custom(sort_lambda)
 	return sorted_options
 	
 
 func __get_by_distance(options: Array[Token], in_quantity: int, query_location: Vector2, ascending: bool) -> Array[Token]:
-	var sorted_options: Array[Token] = sort_by_distance(options, query_location, ascending)
+	var sorted_options: Array[Token] = sort_tokens_by_distance(options, query_location, ascending)
 	var quantity: int = min(in_quantity, len(sorted_options))
 	return sorted_options.slice(0, quantity)
 

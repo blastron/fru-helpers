@@ -24,8 +24,21 @@ icon = ExtResource("4_0qiq2")
 script = ExtResource("3_2oohq")
 icon = ExtResource("5_bp7kr")
 
-[node name="root" type="Node2D" node_paths=PackedStringArray("description_pane", "indicator_layer", "token_layer", "player_layer")]
+[node name="root" type="Node2D" node_paths=PackedStringArray("_thancred", "_clone_1", "_clone_2", "_clone_3", "_conga_spot_locators", "_locator_west_center", "_locator_west_out", "_locator_west_north", "_locator_west_south", "_locator_east_center", "_locator_east_out", "_locator_east_north", "_locator_east_south", "description_pane", "indicator_layer", "token_layer", "player_layer")]
 script = ExtResource("1_r0yxp")
+_thancred = NodePath("CanvasLayer/arena/token_layer/thancred")
+_clone_1 = NodePath("CanvasLayer/arena/token_layer/clone NW")
+_clone_2 = NodePath("CanvasLayer/arena/token_layer/clone N")
+_clone_3 = NodePath("CanvasLayer/arena/token_layer/clone NE")
+_conga_spot_locators = [NodePath("CanvasLayer/locators/congas/conga_1"), NodePath("CanvasLayer/locators/congas/conga_2"), NodePath("CanvasLayer/locators/congas/conga_3"), NodePath("CanvasLayer/locators/congas/conga_4"), NodePath("CanvasLayer/locators/congas/conga_5"), NodePath("CanvasLayer/locators/congas/conga_6"), NodePath("CanvasLayer/locators/congas/conga_7"), NodePath("CanvasLayer/locators/congas/conga_8")]
+_locator_west_center = NodePath("CanvasLayer/locators/baits/west_center")
+_locator_west_out = NodePath("CanvasLayer/locators/baits/west_out")
+_locator_west_north = NodePath("CanvasLayer/locators/baits/west_north")
+_locator_west_south = NodePath("CanvasLayer/locators/baits/west_south")
+_locator_east_center = NodePath("CanvasLayer/locators/baits/east_center")
+_locator_east_out = NodePath("CanvasLayer/locators/baits/east_out")
+_locator_east_north = NodePath("CanvasLayer/locators/baits/east_north")
+_locator_east_south = NodePath("CanvasLayer/locators/baits/east_south")
 _prey_debuff = SubResource("Resource_hkluy")
 _ruin_debuff = SubResource("Resource_m5kkb")
 _mvuln_debuff = SubResource("Resource_f71fd")

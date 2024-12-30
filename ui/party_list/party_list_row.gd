@@ -83,8 +83,8 @@ func _add_buff(data: BuffData, instance: BuffInstance) -> void:
 	if not _buff_list: return
 	
 	for child in _buff_list.get_children():
-		var buff_icon: BuffIcon = child
-		if buff_icon.instance == instance:
+		var existing_buff_icon: BuffIcon = child
+		if existing_buff_icon.instance == instance:
 			assert(false, "Already have a reference to buff instance %s." % str(instance))
 			return
 	
