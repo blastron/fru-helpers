@@ -43,15 +43,6 @@ enum Step {
 }
 
 
-func _ready() -> void:
-	_thancred = find_child("thancred") # This is Thancred.
-	_clone_1 = find_child("clone NW")
-	_clone_2 = find_child("clone NE")
-	_clone_3 = find_child("clone N")
-	
-	super()
-
-
 ##########
 ## SETUP
 ##########
