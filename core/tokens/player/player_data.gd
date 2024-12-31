@@ -219,6 +219,12 @@ func get_buff_instance(buff: BuffData) -> BuffInstance:
 	return _buff_instances[buff] if _buff_instances.has(buff) else null
 
 
+func reset_temporary_state() -> void:
+	for buff in get_active_buffs():
+		remove_buff(buff)
+	dead = false
+
+
 ##########
 ## Death
 ##########

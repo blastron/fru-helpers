@@ -7,7 +7,7 @@
 [ext_resource type="Script" path="res://core/buffs/buff_data.gd" id="3_2oohq"]
 [ext_resource type="Texture2D" uid="uid://d2ccenfxq8bv3" path="res://ui/party_list/buffs/common_icons/ruin_ddown.png" id="4_0qiq2"]
 [ext_resource type="PackedScene" uid="uid://thw6548celuv" path="res://p1/tokens/thancred.tscn" id="4_ejpbr"]
-[ext_resource type="PackedScene" uid="uid://blp7ojt3267u1" path="res://ui/description/description.tscn" id="4_yx3t5"]
+[ext_resource type="PackedScene" uid="uid://blp7ojt3267u1" path="res://ui/description/description_panel.tscn" id="4_yx3t5"]
 [ext_resource type="Texture2D" uid="uid://cyqs48e0js1fb" path="res://ui/party_list/buffs/common_icons/magic_vuln.png" id="5_bp7kr"]
 [ext_resource type="PackedScene" uid="uid://dwfl3kiyj4lvj" path="res://core/locators/locator.tscn" id="5_txyax"]
 [ext_resource type="PackedScene" uid="uid://dqir6acd01442" path="res://ui/party_list/party_list.tscn" id="6_auodc"]
@@ -24,7 +24,7 @@ icon = ExtResource("4_0qiq2")
 script = ExtResource("3_2oohq")
 icon = ExtResource("5_bp7kr")
 
-[node name="root" type="Node2D" node_paths=PackedStringArray("_thancred", "_clone_1", "_clone_2", "_clone_3", "_conga_spot_locators", "_locator_west_center", "_locator_west_out", "_locator_west_north", "_locator_west_south", "_locator_east_center", "_locator_east_out", "_locator_east_north", "_locator_east_south", "description_pane", "indicator_layer", "token_layer", "player_layer")]
+[node name="root" type="Node2D" node_paths=PackedStringArray("_thancred", "_clone_1", "_clone_2", "_clone_3", "_conga_spot_locators", "_locator_west_center", "_locator_west_out", "_locator_west_north", "_locator_west_south", "_locator_east_center", "_locator_east_out", "_locator_east_north", "_locator_east_south", "_description_panel", "indicator_layer", "token_layer", "player_layer")]
 script = ExtResource("1_r0yxp")
 _thancred = NodePath("CanvasLayer/arena/token_layer/thancred")
 _clone_1 = NodePath("CanvasLayer/arena/token_layer/clone NW")
@@ -42,7 +42,7 @@ _locator_east_south = NodePath("CanvasLayer/locators/baits/east_south")
 _prey_debuff = SubResource("Resource_hkluy")
 _ruin_debuff = SubResource("Resource_m5kkb")
 _mvuln_debuff = SubResource("Resource_f71fd")
-description_pane = NodePath("CanvasLayer/description")
+_description_panel = NodePath("CanvasLayer/description")
 indicator_layer = NodePath("CanvasLayer/arena/indicator_layer")
 token_layer = NodePath("CanvasLayer/arena/token_layer")
 player_layer = NodePath("CanvasLayer/arena/token_layer/player_layer")

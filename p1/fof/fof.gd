@@ -17,6 +17,7 @@ const _lightning_cone_arc: float = deg_to_rad(240)
 @export var _clone_2: Thancred
 @export var _clone_3: Thancred
 
+
 @export_group("Locators - Mechanic")
 @export var _conga_spot_locators: Array[Locator]
 @export var _locator_west_center: Locator

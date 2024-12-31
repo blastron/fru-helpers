@@ -2,12 +2,14 @@ class_name Strat extends ScriptedSequence
 
 
 # UI elements
-@export var description_pane: DescriptionPane
+@export var _description_panel: DescriptionPanel
+
 
 # Layers
 @export var indicator_layer: Node2D
 @export var token_layer: Node2D
 @export var player_layer: Node2D
+
 
 # Subscene types
 @export var __player_token_type: PackedScene
@@ -66,12 +68,23 @@ var __intended_locator: Locator = null
 
 func _ready() -> void:
 	# Bind to signals from the description pane.
-	description_pane.next_button.pressed.connect(self._nav_next)
-	description_pane.prev_button.pressed.connect(self._nav_prev)
+	if _description_panel:
+		_description_panel.next_pressed.connect(self._nav_next)
+		_description_panel.prev_pressed.connect(self._nav_prev)
+		_description_panel.start_pressed.connect(self._nav_start)
+		_description_panel.reset_pressed.connect(self._nav_reset)
+		
+		_description_panel.next_enabled = false
+		_description_panel.prev_enabled = false
+		_description_panel.start_enabled = false
 	
 	# Bind to the on-click signals for all locators.
 	for locator: Locator in find_children("", "Locator"):
 		locator.on_clicked.connect(self.__locator_pressed)
+		
+	# Reset player data.
+	for player_data in UserSettings.get_player_data():
+		player_data.reset_temporary_state()
 	
 	# Create common objects from configuration data.
 	__create_player_tokens()
@@ -104,7 +117,9 @@ func jump_to_first_state() -> void:
 func on_state_entered(new_step: int, new_state: int, previous_step: int, previous_state: int) -> void:
 	# Disable user input by default. Individual states should re-enable it as necessary.
 	__deactivate_locators()
-	description_pane.next_button.disabled = true
+	_description_panel.next_enabled = false
+	_description_panel.prev_enabled = false
+	_description_panel.start_enabled = false
 	
 	match new_state:
 		State.SETTING_UP:
@@ -113,21 +128,27 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 			
 		State.WAITING_FOR_DECISION:
 			__selected_locator = null
-		
-			match _mode:
-				Mode.EXPLANATION:
-					# We're in explanation mode. Draw arrows indicating where each token should move next and wait for
-					#   the user to press the Next button.
-					description_pane.next_button.disabled = false
-					print("Waiting for next button press on step %d..." % new_step)
-				Mode.TUTORIAL, Mode.PRACTICE:
-					# Activate any locators associated with this step.
-					if __try_activate_locators():
-						print("Waiting for locator press on step %d..." % new_step)
-					else:
-						# No locators were activated, but we're still waiting for input. Show the Next button.
-						description_pane.next_button.disabled = false
+	
+			if new_step == 0:
+				# We're on the first step. We always assume here that the strat has a first step that does nothing but
+				#   initial setup, and that no user decisions are actually necessary.
+				_description_panel.start_enabled = true
+				print("Waiting for start button press...")
+			else:
+				match _mode:
+					Mode.EXPLANATION:
+						# We're in explanation mode. Draw arrows indicating where each token should move next and wait
+						#   for the user to press the Next button.
+						_description_panel.next_enabled = true
 						print("Waiting for next button press on step %d..." % new_step)
+					Mode.TUTORIAL, Mode.PRACTICE:
+						# Activate any locators associated with this step.
+						if __try_activate_locators():
+							print("Waiting for locator press on step %d..." % new_step)
+						else:
+							# No locators were activated, but we're still waiting for input. Show the Next button.
+							_description_panel.next_enabled = true
+							print("Waiting for next button press on step %d..." % new_step)
 			
 		State.PLAYER_MOVEMENT:
 			# Iterate through all players that have reported movement and move them to their selected locations.
@@ -259,14 +280,23 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 ##########
 
 
-func _nav_prev() -> void:
-	pass
-
-
 func _nav_next() -> void:
 	if _current_state == State.WAITING_FOR_DECISION:
 		# We were waiting for a movement decisision. The next button submits a decision of "no decision".
 		finish_state()
+
+
+func _nav_prev() -> void:
+	pass
+
+
+func _nav_start() -> void:
+	# We assume here that the start button is being shown because clicking start is the step to clear the state.
+	finish_state()
+
+
+func _nav_reset() -> void:
+	get_tree().reload_current_scene()
 
 
 ##########

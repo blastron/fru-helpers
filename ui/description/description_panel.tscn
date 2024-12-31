@@ -1,9 +1,9 @@
 [gd_scene load_steps=3 format=3 uid="uid://blp7ojt3267u1"]
 
 [ext_resource type="Theme" uid="uid://iyl3cwffycsv" path="res://ui/description/description.tres" id="1_bly2k"]
-[ext_resource type="Script" path="res://ui/description/description.gd" id="2_ctigi"]
+[ext_resource type="Script" path="res://ui/description/description_panel.gd" id="2_ctigi"]
 
-[node name="description" type="PanelContainer" node_paths=PackedStringArray("mechanic_description", "strat_description", "next_button", "prev_button", "step_counter")]
+[node name="description" type="PanelContainer" node_paths=PackedStringArray("_title", "_mechanic_description", "_strat_description", "_next_button", "_prev_button", "_start_button", "_reset_button")]
 anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
@@ -17,15 +17,18 @@ grow_horizontal = 0
 grow_vertical = 2
 theme = ExtResource("1_bly2k")
 script = ExtResource("2_ctigi")
-mechanic_description = NodePath("VBoxContainer/ScrollContainer/text layout/mechanic_description")
-strat_description = NodePath("VBoxContainer/ScrollContainer/text layout/strat_description")
-next_button = NodePath("VBoxContainer/HBoxContainer/next_button")
-prev_button = NodePath("VBoxContainer/HBoxContainer/prev_button")
-step_counter = NodePath("VBoxContainer/HBoxContainer/step_counter")
+_title = NodePath("VBoxContainer/ScrollContainer/text layout/title")
+_mechanic_description = NodePath("VBoxContainer/ScrollContainer/text layout/mechanic_description")
+_strat_description = NodePath("VBoxContainer/ScrollContainer/text layout/strat_description")
+_next_button = NodePath("VBoxContainer/HBoxContainer/next_button")
+_prev_button = NodePath("VBoxContainer/HBoxContainer/prev_button")
+_start_button = NodePath("VBoxContainer/HBoxContainer2/start_button")
+_reset_button = NodePath("VBoxContainer/HBoxContainer2/reset_button")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 2
 theme = ExtResource("1_bly2k")
+theme_override_constants/separation = 6
 
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -37,7 +40,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme = ExtResource("1_bly2k")
 
-[node name="Label" type="Label" parent="VBoxContainer/ScrollContainer/text layout"]
+[node name="title" type="Label" parent="VBoxContainer/ScrollContainer/text layout"]
 layout_mode = 2
 text = "Strat Title"
 horizontal_alignment = 1
@@ -61,24 +64,41 @@ scroll_active = false
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
 theme = ExtResource("1_bly2k")
+theme_override_constants/separation = 6
 
 [node name="prev_button" type="Button" parent="VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(75, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 focus_mode = 0
 theme = ExtResource("1_bly2k")
 text = "BACK"
 
-[node name="step_counter" type="Label" parent="VBoxContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "1/16"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="next_button" type="Button" parent="VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(75, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 focus_mode = 0
 theme = ExtResource("1_bly2k")
 text = "NEXT"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("1_bly2k")
+theme_override_constants/separation = 6
+
+[node name="reset_button" type="Button" parent="VBoxContainer/HBoxContainer2"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme = ExtResource("1_bly2k")
+text = "RESET"
+
+[node name="start_button" type="Button" parent="VBoxContainer/HBoxContainer2"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme = ExtResource("1_bly2k")
+text = "START"
