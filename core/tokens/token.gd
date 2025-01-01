@@ -110,6 +110,11 @@ var current_locator: Locator:
 var _current_locator: Locator
 
 
+# An identifier used to identify where the token should be positioned relative to the given locator in order to avoid
+#   having tokens stacked directly on top of each other. 0 if dead center.
+var crowd_position: int
+
+
 var _is_moving: bool :
 	get: return _movement_elapsed_time < _movement_total_time
 
@@ -118,7 +123,24 @@ func _set_locator(locator: Locator) -> void:
 	if _current_locator: _clear_locator()
 	
 	_current_locator = locator
-	if _current_locator.occupants.find(self) < 0: _current_locator.occupants.append(self)
+	if _current_locator.occupants.is_empty():
+		crowd_position = 0
+	else:
+		# Determine the lowest available crowd position ID in the list of occupants. We can do this by sorting a list
+		#   of occupied positions, then sequentially comparing each position's ID with its index in the list. If we find
+		#   an ID whose value is greater than its index, that means that we did not see the ID that would have matched
+		#   the index, meaning that it is available.
+		var used_positions: Array[int]
+		used_positions.assign(_current_locator.occupants.map(func(token: Token) -> int: return token.crowd_position))
+		used_positions.sort()
+		
+		crowd_position = len(used_positions)
+		for index in range(len(used_positions)):
+			if index != used_positions[index]:
+				crowd_position = index
+				break
+	
+	_current_locator.occupants.append(self)
 	
 
 func _clear_locator() -> void:
@@ -129,24 +151,41 @@ func _clear_locator() -> void:
 		_current_locator = null
 
 
-func teleport_to_locator(locator: Locator, pile_index: int = 0, pile_size: int = 0) -> void:
-	teleport_to_position(_get_locator_position(locator, pile_index, pile_size))
-	_set_locator(locator)
-	
-	
-
-func move_to_locator(locator: Locator, pile_index: int = 0, pile_size: int = 0, speed_override: float = -1) -> void:
-	move_to_position(_get_locator_position(locator, pile_index, pile_size), speed_override)
-	_set_locator(locator)
-
-
-func _get_locator_position(locator: Locator, pile_index: int, pile_size: int) -> Vector2:
-	return locator.position
-
-
 func teleport_to_position(new_position: Vector2) -> void:
 	_clear_locator()
+	_teleport_to_position(new_position)
+
 	
+func move_to_position(new_position: Vector2, speed_override: float = -1) -> void:
+	_clear_locator()
+	_move_to_position(new_position, speed_override)
+
+
+func teleport_to_locator(locator: Locator) -> void:
+	_set_locator(locator)
+	_teleport_to_position(_get_locator_position())
+	
+
+func move_to_locator(locator: Locator, speed_override: float = -1) -> void:
+	_set_locator(locator)
+	_move_to_position(_get_locator_position(), speed_override)
+
+
+func _get_locator_position() -> Vector2:
+	if not _current_locator: return Vector2(0, 0)
+	
+	var base_position: Vector2 = _current_locator.position
+	if crowd_position == 0: return base_position
+	
+	# Arrange all tokens beyond the first in a 7/2 heptagram.
+	var angle_stride: float = 4 * PI / 7
+	var total_angle: float = _current_locator.crowd_angle + angle_stride * crowd_position
+	var offset: Vector2 = Vector2(cos(total_angle), sin(total_angle))
+	
+	return base_position + (offset * _current_locator.crowd_spacing)
+
+
+func _teleport_to_position(new_position: Vector2) -> void:
 	position = new_position
 	
 	# If we were in the middle of a movement, end it.
@@ -156,9 +195,7 @@ func teleport_to_position(new_position: Vector2) -> void:
 		_try_emit_completion()
 
 
-func move_to_position(new_position: Vector2, speed_override: float = -1) -> void:
-	_clear_locator()
-	
+func _move_to_position(new_position: Vector2, speed_override: float = -1) -> void:
 	_start_position = position
 	_end_position = new_position
 
