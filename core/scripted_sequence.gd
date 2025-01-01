@@ -183,7 +183,8 @@ func add_dependency(dependency: Variant) -> void:
 func __dependency_completed(dependency: Variant) -> void:
 	var dependency_index: int = __outstanding_dependencies.find(dependency)
 	if dependency_index != -1:
-		print("STATE_MACHINE: Dependency %s has completed. %d remaining." % [dependency, len(__outstanding_dependencies)])
+		print("STATE_MACHINE: Dependency %s has completed. %d remaining." %
+			[dependency, len(__outstanding_dependencies) - 1])
 		__outstanding_dependencies.remove_at(dependency_index)
 	else:
 		assert(false, ("Received task_completed() from an object not tracked as a dependency. Ignoring and " +

@@ -34,6 +34,20 @@ signal start_pressed()
 signal reset_pressed()
 
 
+var mechanic_description: String:
+	get: return _mechanic_description.text if _mechanic_description else ""
+	set(value):
+		_mechanic_description.text = value
+		_mechanic_description.visible = not value.is_empty()
+
+
+var strat_description: String:
+	get: return _strat_description.text if _strat_description else ""
+	set(value):
+		_strat_description.text = value
+		_strat_description.visible = not value.is_empty()
+
+
 func _ready() -> void:
 	if _next_button: _next_button.pressed.connect(func(): next_pressed.emit())
 	if _prev_button: _prev_button.pressed.connect(func(): prev_pressed.emit())

@@ -32,8 +32,8 @@ enum State {
 	WAITING_FOR_DECISION,	# Waiting for the user to make a decision about movement.
 	PLAYER_MOVEMENT,		# Moving player tokens in direct response to the player's decision.
 	RESOLVING,				# Playing out the mechanic's resolution step.
-	STRAT_FAILED,			# The user failed to execute the strat and we have paused to let them know this.
-	STRAT_COMPLETE			# The strat was successfully completed.
+	FAILING,				# The user failed to execute the strat and we are resolving the results of that failure.
+	STRAT_COMPLETE			# No further steps in the strat are available, either because of success or failure.
 }
 
 
@@ -47,18 +47,12 @@ func get_state_name(state: State) -> String:
 		State.PLAYER_MOVEMENT:
 			return "PLAYER_MOVEMENT"
 		State.RESOLVING:
-			return "STRAT_RESOLVING"
-		State.STRAT_FAILED:
-			return "STRAT_FAILED"
+			return "RESOLVING"
+		State.FAILING:
+			return "FAILING"
 		State.STRAT_COMPLETE:
 			return "STRAT_COMPLETE"
 	return "UNKNOWN"
-
-
-# The last locator clicked by the user.
-var __selected_locator: Locator = null
-# The locator the user should have selected.
-var __intended_locator: Locator = null
 
 
 ##########
@@ -77,6 +71,9 @@ func _ready() -> void:
 		_description_panel.next_enabled = false
 		_description_panel.prev_enabled = false
 		_description_panel.start_enabled = false
+		
+		_description_panel.mechanic_description = ""
+		_description_panel.strat_description = ""
 	
 	# Bind to the on-click signals for all locators.
 	for locator: Locator in find_children("", "Locator"):
@@ -142,6 +139,12 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 						_description_panel.next_enabled = true
 						print("Waiting for next button press on step %d..." % new_step)
 					Mode.TUTORIAL, Mode.PRACTICE:
+						# Save off the list of valid movements the user could make this step.
+						var all_valid_movements: Dictionary = _get_valid_movements(__current_step)
+						__valid_locators.assign(
+							all_valid_movements[user_token] if all_valid_movements.has(user_token) else []
+						)
+						
 						# Activate any locators associated with this step.
 						if __try_activate_locators():
 							print("Waiting for locator press on step %d..." % new_step)
@@ -151,8 +154,11 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 							print("Waiting for next button press on step %d..." % new_step)
 			
 		State.PLAYER_MOVEMENT:
+			# Get the list of movements to perform.
+			var user_selection: Locator = __selected_locator if _needs_user_decision(__current_step) else null
+			var movements: Dictionary = _get_actual_movements(new_step, user_selection)
+		
 			# Iterate through all players that have reported movement and move them to their selected locations.
-			var movements: Dictionary = _get_actual_movements(new_step, __selected_locator)
 			var total_moves: int = 0
 			for key in movements.keys():
 				var player_token: PlayerToken = key
@@ -174,12 +180,12 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 			# All resolution logic happens during substeps, so we don't need to do anything here.
 			pass
 			
-		State.STRAT_FAILED:
-			# todo
+		State.FAILING:
+			# All failure resolution logic happens during substeps, so we don't need to do anything here.
 			pass
 			
 		State.STRAT_COMPLETE:
-			# todo
+			# TODO: Enable back button once undo is implemented.
 			pass
 			
 		_:
@@ -200,8 +206,8 @@ func on_substep_entered(current_step: int, current_state: int, current_substep: 
 		State.RESOLVING:
 			_enter_resolution(current_step, current_substep)
 
-		State.STRAT_FAILED:
-			pass
+		State.FAILING:
+			_enter_failure(current_step, current_substep)
 
 		State.STRAT_COMPLETE:
 			pass
@@ -225,8 +231,8 @@ func process_substep(current_step: int, current_state: int, current_substep: int
 		State.RESOLVING:
 			_process_resolution(current_step, current_substep, delta)
 
-		State.STRAT_FAILED:
-			pass
+		State.FAILING:
+			_process_failure(current_step, current_substep, delta)
 
 		State.STRAT_COMPLETE:
 			pass
@@ -243,12 +249,27 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 			if _needs_user_decision(current_step):
 				jump_to_state(current_step, State.WAITING_FOR_DECISION)
 			else:
-				__selected_locator = null
 				jump_to_state(current_step, State.PLAYER_MOVEMENT)
 			
 		State.WAITING_FOR_DECISION:
-			# TODO: handle undo/restart
-			jump_to_state(current_step, State.PLAYER_MOVEMENT)
+			# TODO: handle undo
+			if __selected_locator and not __valid_locators.has(__selected_locator):
+				# The user selected the incorrect locator. Mark it as incorrect, then highlight the valid locators.
+				if __selected_locator:
+					__selected_locator.state = Locator.State.INCORRECT
+		
+				for valid_locator in __valid_locators:
+					valid_locator.state = Locator.State.CORRECT
+		
+				# Show the error message.
+				_description_panel.strat_description = _get_failure_message(current_step, __selected_locator)
+			
+				# Skip to failure resolution.
+				jump_to_state(current_step, State.FAILING)
+				
+			else:
+				# Either no actual decision needed to be made or the user made the correct decision.
+				jump_to_state(current_step, State.PLAYER_MOVEMENT)
 			
 		State.PLAYER_MOVEMENT:
 			# Player movement has finished. Start resolving the mechanic.
@@ -263,16 +284,16 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 				# The user has completed the strat.
 				jump_to_state(current_step, State.STRAT_COMPLETE)
 			
-		State.STRAT_FAILED:
-			# TODO: handle undo/restart
-			pass
+		State.FAILING:
+			# Failure resolution has finished. Jump straight to completion, ignoring all remaining steps.
+			jump_to_state(current_step, State.STRAT_COMPLETE)
 			
 		State.STRAT_COMPLETE:
-			# TODO: handle undo/restart
+			# TODO: handle undo
 			pass
 			
 		_:
-			assert(false, "Unknown state entered!")
+			assert(false, "Unknown state exited!")
 
 
 ##########
@@ -309,12 +330,14 @@ func _use_fixed_data() -> bool:
 	return _mode == Mode.EXPLANATION
 
 
+# Called when each setup substep is entered.
 func _enter_setup(step_id: int, substep_id: int) -> void:
 	# Override this in your strat.
 	assert(false, "_enter_setup must be overridden in a strat.")
 	finish_state()
 
 
+# Called every tick while setup is running.
 func _process_setup(step_id: int, substep_id: int, delta: float) -> void:
 	# Override this in your strat if you want any processing to happen.
 	pass
@@ -395,6 +418,11 @@ func __try_activate_locators() -> bool:
 	var active_locators: Array[Locator] = _get_active_locators(__current_step)
 	var found_any_locators: bool = false
 	for locator: Locator in find_children("", "Locator"):
+		if locator.state in [Locator.State.INCORRECT, Locator.State.CORRECT]:
+			# Don't change the state of locators we're using to show failure. We ideally shouldn't get here, as we don't
+			#   want any user input after the user has made an incorrect choice.
+			continue
+		
 		if locator in active_locators:
 			locator.state = Locator.State.ENABLED
 			found_any_locators = true
@@ -411,6 +439,11 @@ func __deactivate_locators() -> void:
 		user_token.input_highlight = false
 
 	for locator: Locator in find_children("", "Locator"):
+		if locator.state in [Locator.State.INCORRECT, Locator.State.CORRECT]:
+			# Don't reset locators we're using to show the results of a user decision. It's okay for us to get here even
+			#   after failure, as we still want to be able to deactivate locators after the user's interaction.
+			continue
+		
 		locator.state = locator.initial_state
 
 		
@@ -439,12 +472,14 @@ func sort_locators_by_distance(options: Array[Locator], query_location: Vector2,
 ##########
 
 
+# Called when each resolution substep is entered.
 func _enter_resolution(step_id: int, substep_id: int) -> void:
 	# Override this in your strat.
 	assert(false, "_enter_resolution must be overridden in a strat.")
 	finish_state()
 
 
+# Called on every tick while resolution is running.
 func _process_resolution(step_id: int, substep_id: int, delta: float) -> void:
 	# Override this in your strat if you want any processing to happen.
 	pass
@@ -455,11 +490,43 @@ func _process_resolution(step_id: int, substep_id: int, delta: float) -> void:
 ##########
 
 
+# The last locator clicked by the user.
+var __selected_locator: Locator = null
+
+
+# The locators that should have been selected, but weren't. Used to highlight correct choices at the end of any
+#   post-failure resolution operations.
+var __valid_locators: Array[Locator]
+
+
 # Gets index of the next step. Returns -1 if there is no next step to advance to, either because the strat is complete
 #   or because the player failed the mechanic.
 func _get_next_step(step_id: int) -> int:
 	assert(false, "get_next_step() must be overridden within a strat subclass.")
 	return -1
+
+
+# Gets the message to show to the player once they failed.
+func _get_failure_message(step_id: int, user_selection: Locator) -> String:
+	return "Incorrect."
+
+
+# Gets the locator that the user selected that caused the failure.
+func _get_incorrect_selection() -> Locator:
+	return __selected_locator
+
+
+# Called when each failure resolution substep is entered. By default, moves the player to their selected locator and
+#   immediately exits without waiting for the movement to complete.
+func _enter_failure(step_id: int, substep_id: int) -> void:
+	if __selected_locator: user_token.move_to_locator(__selected_locator)
+	finish_state()
+
+
+# Called on every tick while failure resolution is running.
+func _process_failure(step_id: int, substep_id: int, delta: float) -> void:
+	# Override this in your strat if you want any processing to happen.
+	pass
 	
 
 ##########
