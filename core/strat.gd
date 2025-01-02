@@ -80,7 +80,7 @@ func _ready() -> void:
 		locator.on_clicked.connect(self.__locator_pressed)
 		
 	# Reset player data.
-	for player_data in UserSettings.get_player_data():
+	for player_data in UserSettings.player_data:
 		player_data.reset_temporary_state()
 	
 	# Create common objects from configuration data.
@@ -92,7 +92,7 @@ func _ready() -> void:
 
 	
 func __create_player_tokens() -> void:
-	for player_data in UserSettings.get_player_data():
+	for player_data in UserSettings.player_data:
 		var new_token: PlayerToken = __player_token_type.instantiate()
 		new_token.player_data = player_data
 		if player_data.user_controlled:

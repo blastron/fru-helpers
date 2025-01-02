@@ -9,6 +9,8 @@ class_name DescriptionPanel extends Control
 @export var _start_button: Button
 @export var _reset_button: Button
 
+@export var _menu_button: Button
+
 
 var next_enabled: bool:
 	get: return not _next_button.disabled if _next_button else false
@@ -53,3 +55,8 @@ func _ready() -> void:
 	if _prev_button: _prev_button.pressed.connect(func(): prev_pressed.emit())
 	if _start_button: _start_button.pressed.connect(func(): start_pressed.emit())
 	if _reset_button: _reset_button.pressed.connect(func(): reset_pressed.emit())
+	if _menu_button: _menu_button.pressed.connect(self._menu_button_pressed)
+
+
+func _menu_button_pressed():
+	get_tree().change_scene_to_file("res://main.tscn")

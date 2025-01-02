@@ -21,6 +21,7 @@ func _on_visibility_changed() -> void:
 		_load_party_list()
 	else:
 		_save_party_list()
+		UserSettings.write_settings()
 
 		
 func _load_party_list() -> void:
@@ -35,7 +36,7 @@ func _load_party_list() -> void:
 		child.queue_free()
 	_party_list_user_control_group.get_buttons().clear()
 	
-	var player_data: Array[PlayerData] = UserSettings.get_player_data()
+	var player_data: Array[PlayerData] = UserSettings.player_data
 	for data in player_data:
 		var new_row: PartySettingRow = _party_row_type.instantiate()
 		new_row.role = PlayerData.get_role_for_job(data.job)
@@ -60,7 +61,7 @@ func _save_party_list() -> void:
 		
 	print("Saving party list data.")
 	
-	var player_data: Array[PlayerData] = UserSettings.get_player_data()
+	var player_data: Array[PlayerData] = UserSettings.player_data
 	player_data.clear()
 	for child in _party_list.get_children():
 		var data: PlayerData = PlayerData.new(child.job, child.group)

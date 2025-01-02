@@ -15,7 +15,7 @@ func _load_party_list() -> void:
 		_list.remove_child(child)
 		child.queue_free()
 	
-	var player_data: Array[PlayerData] = UserSettings.get_player_data()
+	var player_data: Array[PlayerData] = UserSettings.player_data
 	for data in player_data:
 		var new_row: PartyListRow = _row_type.instantiate()
 		new_row.player_data = data
