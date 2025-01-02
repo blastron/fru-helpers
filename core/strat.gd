@@ -262,7 +262,9 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 					valid_locator.state = Locator.State.CORRECT
 		
 				# Show the error message.
-				_description_panel.strat_description = _get_failure_message(current_step, __selected_locator)
+				var failure_message: Array[String] = _get_failure_message(current_step, __selected_locator)
+				var concatenator: String = tr("COMMON_SENTENCE_SEPARATOR")
+				_description_panel.strat_description = concatenator.join(failure_message)
 			
 				# Skip to failure resolution.
 				jump_to_state(current_step, State.FAILING)
@@ -507,8 +509,8 @@ func _get_next_step(step_id: int) -> int:
 
 
 # Gets the message to show to the player once they failed.
-func _get_failure_message(step_id: int, user_selection: Locator) -> String:
-	return "Incorrect."
+func _get_failure_message(step_id: int, user_selection: Locator) -> Array[String]:
+	return ["Incorrect."]
 
 
 # Gets the locator that the user selected that caused the failure.

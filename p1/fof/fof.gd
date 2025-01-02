@@ -443,8 +443,81 @@ func _get_next_step(current_step: int) -> int:
 	else: return current_step + 1
 
 
-func _get_failure_message(step_id: int, user_selection: Locator) -> String:
-	return super._get_failure_message(step_id, user_selection)
+func _get_failure_message(step_id: int, user_selection: Locator) -> Array[String]:
+	# Check to see if the user should have moved to a static bait spot.
+	if user_token.has_any_tag(_bait_tags):
+		# Bait players only move once, so there's only one error message to show.
+		if user_token.has_tag(_bait_tags[0]): return [tr("P1_FOF_FUSSLESS_FAILED_BAIT_ONE")]
+		if user_token.has_tag(_bait_tags[1]): return [tr("P1_FOF_FUSSLESS_FAILED_BAIT_TWO")]
+		if user_token.has_tag(_bait_tags[2]): return [tr("P1_FOF_FUSSLESS_FAILED_BAIT_THREE")]
+		if user_token.has_tag(_bait_tags[3]): return [tr("P1_FOF_FUSSLESS_FAILED_BAIT_FOUR")]
+		return ["ERROR: Non-tether player did not have a bait tag to show an error message for."]
+	
+	# The user has a tether. Check to see if they are on the wrong side.
+	var is_west: bool = user_selection in [
+		_locator_west_center, _locator_west_north, _locator_west_out, _locator_west_south
+	]
+	var should_be_west: bool = user_token.has_any_tag([
+		_tether_tags[0], _tether_tags[2], _bait_tags[0], _bait_tags[1]
+	])
+	
+	if is_west != should_be_west:
+		if should_be_west: return [tr("P1_FOF_FUSSLESS_FAILED_WRONG_TETHER_SIDE_WEST")]
+		else: return [tr("P1_FOF_FUSSLESS_FAILED_WRONG_TETHER_SIDE_EAST")]
+	
+	# Determine if we're on the first or second set of tethers and if the user's tether is about to resolve.
+	var is_first_shot: bool = (is_west and step_id < Step.SHOT_ONE) or (not is_west and step_id < Step.SHOT_TWO)
+	var takes_first_shot: bool = user_token.has_any_tag([_tether_tags[0], _tether_tags[1]])
+	var taking_this_shot: bool = takes_first_shot if is_first_shot else not takes_first_shot
+	
+	# Get the other token in the group. Note that this could wind up being null if the user messes up before all tethers
+	#   are assigned.
+	var other_tether_token: Token
+	if user_token.has_tag(_tether_tags[0]):
+		other_tether_token = find_token_by_tag(_tether_tags[2])
+	elif user_token.has_tag(_tether_tags[1]):
+		other_tether_token = find_token_by_tag(_tether_tags[3])
+	elif user_token.has_tag(_tether_tags[2]):
+		other_tether_token = find_token_by_tag(_tether_tags[0])
+	elif user_token.has_tag(_tether_tags[3]):
+		other_tether_token = find_token_by_tag(_tether_tags[1])
+		
+	# Check to see if the user wound up in a fixed bait spot instead of a tether placement spot.
+	var is_in_fixed_bait_spot: bool = user_selection in [
+		_locator_west_out, _locator_west_south, _locator_east_south, _locator_east_out
+	]
+	if is_in_fixed_bait_spot:
+		if taking_this_shot:
+			if user_token.has_tag("fire"): return [tr("P1_FOF_FUSSLESS_FAILED_TETHER_PLACE_FIRE")]
+			else: return [tr("P1_FOF_FUSSLESS_FAILED_TETHER_PLACE_LIGHTNING")]
+		else:
+			if other_tether_token.has_tag("fire"): return [
+				tr("P1_FOF_FUSSLESS_FAILED_TETHER_BAIT_FIRE"), tr("P1_FOF_FUSSLESS_FAILED_FIRE_ADDENDUM")
+			]
+			else: return [tr("P1_FOF_FUSSLESS_FAILED_TETHER_BAIT_LIGHTNING")]
+	
+	# The user moved to the wrong tether spot on the correct side. If this is the first shot, inform them that they
+	#   baited wrong, and if it's not, informed them that they swapped incorrectly.
+	if is_first_shot:
+		if taking_this_shot:
+			if user_token.has_tag("fire"): return [tr("P1_FOF_FUSSLESS_FAILED_TETHER_PLACE_FIRE")]
+			else: return [tr("P1_FOF_FUSSLESS_FAILED_TETHER_PLACE_LIGHTNING")]
+		else:
+			if other_tether_token.has_tag("fire"): return [
+				tr("P1_FOF_FUSSLESS_FAILED_TETHER_BAIT_FIRE"), tr("P1_FOF_FUSSLESS_FAILED_FIRE_ADDENDUM")
+			]
+			else: return [tr("P1_FOF_FUSSLESS_FAILED_TETHER_BAIT_LIGHTNING")]
+	else:
+		var is_fire: bool = user_token.has_tag("fire") if taking_this_shot else other_tether_token.has_tag("fire")
+		var needed_swap: bool = ((user_token.has_tag("fire") and other_tether_token.has_tag("fire")) or
+			(user_token.has_tag("lightning") and other_tether_token.has_tag("lightning")))
+		if needed_swap: return [
+			tr("P1_FOF_FUSSLESS_FAILED_DID_NOT_SWAP_IN") if taking_this_shot else tr("P1_FOF_FUSSLESS_FAILED_DID_NOT_SWAP_OUT"),
+			tr("P1_FOF_FUSSLESS_FAILED_SWAP_FIRE") if is_fire else tr("P1_FOF_FUSSLESS_FAILED_SWAP_LIGHTNING")
+		]
+		else: return [
+			tr("P1_FOF_FUSSLESS_FAILED_UNNECESSARY_SWAP")
+		]
 
 
 func _enter_failure(step_id: int, substep_id: int) -> void:
@@ -528,8 +601,8 @@ func _enter_failure(step_id: int, substep_id: int) -> void:
 		
 		if target_4 != user_token:
 			add_dependency(target_4)
-			if user_selection == _locator_west_north: target_4.move_to_locator(_locator_east_center)
-			elif user_selection == _locator_west_center: target_4.move_to_locator(_locator_east_north)
+			if user_selection == _locator_east_north: target_4.move_to_locator(_locator_east_center)
+			elif user_selection == _locator_east_center: target_4.move_to_locator(_locator_east_north)
 			elif step_id < Step.SHOT_TWO:
 				target_4.move_to_locator(_locator_east_center if target_2.has_tag("fire") else _locator_east_north)
 			else:
