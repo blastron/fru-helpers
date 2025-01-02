@@ -77,25 +77,17 @@ position = Vector2(360, 360)
 [node name="thancred" parent="CanvasLayer/arena/token_layer" instance=ExtResource("4_ejpbr")]
 self_modulate = Color(1, 1, 1, 1)
 on_stage = true
-hitbox_radius = 0.0
-show_hitbox = false
-hitbox_angle = 0.0
 
 [node name="clone NW" parent="CanvasLayer/arena/token_layer" instance=ExtResource("4_ejpbr")]
 position = Vector2(-230, -230)
-hitbox_radius = 0.0
 show_hitbox = false
-hitbox_angle = 0.0
 
 [node name="clone N" parent="CanvasLayer/arena/token_layer" instance=ExtResource("4_ejpbr")]
 position = Vector2(0, -320)
-hitbox_radius = 0.0
 show_hitbox = false
-hitbox_angle = 0.0
 
 [node name="clone NE" parent="CanvasLayer/arena/token_layer" instance=ExtResource("4_ejpbr")]
 position = Vector2(230, -230)
-hitbox_radius = 0.0
 show_hitbox = false
 hitbox_angle = 0.0
 

@@ -19,6 +19,7 @@ func _ready() -> void:
 	_on_stage_percent = 1 if on_stage else 0
 	_update_on_stage_visuals()
 
+
 func _process(delta: float) -> void:
 	super(delta)
 	
@@ -27,6 +28,7 @@ func _process(delta: float) -> void:
 		
 	_process_on_stage(delta)
 	_process_facing(delta)
+
 
 func has_outstanding_tasks() -> bool:
 	return (super() or
@@ -48,12 +50,15 @@ func has_outstanding_tasks() -> bool:
 		on_stage = value
 		_update_on_stage_visuals()
 
+
 var _on_stage_percent: float = 0
 const _on_stage_speed: float = 10
 const _on_stage_displacement: float = 50
 
+
 var _is_in_stage_transition: bool :
 	get: return (on_stage and _on_stage_percent < 1) or (not on_stage and _on_stage_percent > 0)
+
 
 func _process_on_stage(delta: float) -> void:
 	if on_stage and _on_stage_percent < 1:
@@ -69,6 +74,7 @@ func _process_on_stage(delta: float) -> void:
 
 		if _on_stage_percent == 0:
 			_try_emit_completion()
+
 
 func _update_on_stage_visuals() -> void:
 	# If we're in the editor, show a semi-transparent icon to indicate we're on or off stage.
@@ -96,10 +102,12 @@ func move_to_position(new_position: Vector2, speed_override: float = -1) -> void
 		# Start spinning to face the angle of movement.
 		face_direction(_get_movement_angle(), false)
 
+
 func _get_movement_angle() -> float:
 	if _is_moving:
 		return _start_position.angle_to_point(Vector2(-_end_position.y, _end_position.x))
 	return 0
+
 
 # Move towards the target location, stopping when the edge of our hitbox touches it. If the location is already in the
 #   target radius, moves forward a tiny little bit to emphasize that movement is occuring.
@@ -128,6 +136,7 @@ func approach_position(target_location: Vector2, radius_override: float = -1, sp
 		if _hitbox:
 			_hitbox.radius = value
 
+
 @export var _hitbox: Hitbox
 @export var show_hitbox: bool = true:
 	get:
@@ -136,6 +145,7 @@ func approach_position(target_location: Vector2, radius_override: float = -1, sp
 		if _hitbox != null:
 			_hitbox.visible = value
 
+
 @export var hitbox_angle: float = -PI / 2:
 	get:
 		return _hitbox.rotation if _hitbox != null else 0.0
@@ -143,16 +153,20 @@ func approach_position(target_location: Vector2, radius_override: float = -1, sp
 		if _hitbox != null:
 			_hitbox.rotation = wrapf(value, -PI, PI)
 
+
 const _spin_rate: float = PI * 6
 var _start_spin_angle: float
 var _end_spin_angle: float
 var _spin_elapsed_time: float
 var _spin_total_time: float
 
+
 var _is_spinning: bool :
 	get: return _spin_elapsed_time < _spin_total_time
 
+
 var _aggro_target: Node2D = null
+
 
 func face_direction(angle: float, instant: bool = false):
 	if instant:
@@ -182,12 +196,13 @@ func face_direction(angle: float, instant: bool = false):
 		#   added as a dependency.
 		if _spin_total_time <= 0:
 			_try_emit_completion()
-			
-	
+
+
 func face_location(location: Vector2, instant: bool = false):
-	var angle: float = position.angle_to_point(Vector2(-location.y, location.x))
+	var angle: float = position.angle_to_point(location)
 	face_direction(angle, instant)
-	
+
+
 func set_aggro_target(new_target: Node2D, snap_to_face: bool = false):
 	if new_target == null:
 		_aggro_target = null
@@ -199,7 +214,8 @@ func set_aggro_target(new_target: Node2D, snap_to_face: bool = false):
 	else:
 		_aggro_target = new_target
 		face_location(_aggro_target.position, snap_to_face)
-		
+
+
 func _process_facing(delta: float):
 	if _is_spinning:
 		_spin_elapsed_time += delta
