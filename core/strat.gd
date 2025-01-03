@@ -9,6 +9,7 @@ class_name Strat extends ScriptedSequence
 @export var indicator_layer: Node2D
 @export var token_layer: Node2D
 @export var player_layer: Node2D
+@export var explainer_layer: Node2D
 
 
 # Subscene types
@@ -123,6 +124,12 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 	
 	match new_state:
 		State.SETTING_UP:
+			if _mode == Mode.EXPLANATION:
+				# Show the explanation message for the current step.
+				var explainer_message: Array[String] = _get_explainer_message(new_step)
+				var concatenator: String = tr("COMMON_SENTENCE_SEPARATOR")
+				_description_panel.strat_description = concatenator.join(explainer_message)
+
 			# All setup logic happens during substeps, so we don't need to do anything here.
 			pass
 			
@@ -138,11 +145,8 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 			else:
 				match _mode:
 					Mode.EXPLANATION:
-						# Show the explanation message for the current step.
-						var explainer_message: Array[String] = _get_explainer_message(__current_step)
-						var concatenator: String = tr("COMMON_SENTENCE_SEPARATOR")
-						_description_panel.strat_description = concatenator.join(explainer_message)
-
+						_show_explainer_arrows(new_step)
+						
 						# Wait for the user to press the Next button.
 						_description_panel.next_enabled = true
 						print("Waiting for next button press on step %d..." % new_step)
@@ -260,6 +264,11 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 				jump_to_state(current_step, State.PLAYER_MOVEMENT)
 			
 		State.WAITING_FOR_DECISION:
+			if _mode == Mode.EXPLANATION:
+				for child in explainer_layer.get_children():
+					explainer_layer.remove_child(child)
+					child.queue_free()
+		
 			# TODO: handle undo
 			if __selected_locator and not __valid_locators.has(__selected_locator):
 				# The user selected the incorrect locator. Mark it as incorrect, then highlight the valid locators.
@@ -351,6 +360,65 @@ func _nav_explain() -> void:
 #   joined together by a locale-appropriate sentence separator.
 func _get_explainer_message(step_id: int) -> Array[String]:
 	return ["Explanation for step %d" % step_id]
+
+
+const __explainer_arrow_color: Color = Color(0.98, 0.36, 0.26)
+const __explainer_arrow_border_color: Color = Color(0.17, 0.17, 0.17)
+
+
+# Draws arrows indicating how tokens should move. By default, retrieves the list of valid movements and draws straight
+#   lines from the token to its intended destination.
+func _show_explainer_arrows(step_id: int) -> void:
+	var all_valid_movements: Dictionary = _get_valid_movements(step_id)
+	for token in all_valid_movements.keys():
+		var possible_destinations: Array = all_valid_movements[token]
+		for destination in possible_destinations:
+			# Determine how long the arrow is.
+			var relative_destination: Vector2  = destination.position - token.position
+			var arrow_length: float = relative_destination.length()
+
+			var minimum_arrow_length: float = 15
+			if arrow_length < minimum_arrow_length:
+				# The arrow is extremely short, indicating that no real movement is necessary.
+				# TODO: Some sort of indication that no movement is necessary.
+				pass
+			else:
+				# Determine how long the arrow is and where it should originate from. For the sake
+				#   of visual clarity, we want the arrow to start slightly outside the player's
+				#   radius and go until slightly before the destination point.
+				var source_offset: float = 22
+				var destination_offset: float = 10
+
+				# If shortening the arrow would reduce it below the minimum length, reduce the
+				#   offsets, bringing the start of the arrow closer to the token's center until it
+				#   is as far away from the center as the end of the arrow is away from the target,
+				#   then bring both of those together equally.
+				var adjusted_arrow_length: float = arrow_length - source_offset - destination_offset
+				var spillover: float = minimum_arrow_length - adjusted_arrow_length
+				if spillover > 0:
+					# Reduce the source offset until it equals the destination offset.
+					var reduction: float = min(source_offset - destination_offset, spillover)
+					spillover -= reduction
+					source_offset -= reduction
+				if spillover > 0:
+					# The arrow is still too short. Reduce the source and destination offsets
+					#   equally.
+					var reduction: float = min(source_offset + destination_offset, spillover)
+					spillover -= reduction
+					destination_offset -= reduction / 2
+					source_offset -= reduction / 2
+
+				# Determine where along the line the start and end of the arrow should lie.
+				var arrow_direction: Vector2 = relative_destination.normalized()
+				var points: Array[Vector2] = [
+					token.position + arrow_direction * source_offset,
+					destination.position - arrow_direction * destination_offset
+				]
+
+				var arrow: Arrow = Arrow.new(points)
+				arrow.color = __explainer_arrow_color
+				arrow.border_color = __explainer_arrow_border_color
+				explainer_layer.add_child(arrow)
 
 
 ##########

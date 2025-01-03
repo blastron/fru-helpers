@@ -24,7 +24,7 @@ icon = ExtResource("4_0qiq2")
 script = ExtResource("3_2oohq")
 icon = ExtResource("5_bp7kr")
 
-[node name="root" type="Node2D" node_paths=PackedStringArray("_thancred", "_clone_1", "_clone_2", "_clone_3", "_conga_spot_locators", "_locator_west_center", "_locator_west_out", "_locator_west_north", "_locator_west_south", "_locator_east_center", "_locator_east_out", "_locator_east_north", "_locator_east_south", "_description_panel", "indicator_layer", "token_layer", "player_layer")]
+[node name="root" type="Node2D" node_paths=PackedStringArray("_thancred", "_clone_1", "_clone_2", "_clone_3", "_conga_spot_locators", "_locator_west_center", "_locator_west_out", "_locator_west_north", "_locator_west_south", "_locator_east_center", "_locator_east_out", "_locator_east_north", "_locator_east_south", "_description_panel", "indicator_layer", "token_layer", "player_layer", "explainer_layer")]
 script = ExtResource("1_r0yxp")
 _thancred = NodePath("CanvasLayer/arena/token_layer/thancred")
 _clone_1 = NodePath("CanvasLayer/arena/token_layer/clone NW")
@@ -46,6 +46,7 @@ _description_panel = NodePath("CanvasLayer/description")
 indicator_layer = NodePath("CanvasLayer/arena/indicator_layer")
 token_layer = NodePath("CanvasLayer/arena/token_layer")
 player_layer = NodePath("CanvasLayer/arena/token_layer/player_layer")
+explainer_layer = NodePath("CanvasLayer/arena/explainer_layer")
 __player_token_type = ExtResource("2_8m1s1")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
@@ -92,6 +93,9 @@ show_hitbox = false
 hitbox_angle = 0.0
 
 [node name="player_layer" type="Node2D" parent="CanvasLayer/arena/token_layer"]
+
+[node name="explainer_layer" type="Node2D" parent="CanvasLayer/arena"]
+position = Vector2(360, 360)
 
 [node name="locators" type="Control" parent="CanvasLayer"]
 layout_mode = 3
