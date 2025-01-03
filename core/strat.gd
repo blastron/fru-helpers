@@ -21,7 +21,7 @@ var user_token: PlayerToken = null
 
 enum Mode {
 	EXPLANATION,			# Explaining the strat at a high level to the user using fixed information.
-	TUTORIAL,				# Walking the user through the strat, showing them what they specifically should do.
+	TUTORIAL,				# TODO: Walking the user through the strat, showing them what they specifically should do.
 	PRACTICE				# The user is playing through the mechanic without assistance.
 }
 var _mode : Mode = Mode.PRACTICE
@@ -67,10 +67,12 @@ func _ready() -> void:
 		_description_panel.prev_pressed.connect(self._nav_prev)
 		_description_panel.start_pressed.connect(self._nav_start)
 		_description_panel.reset_pressed.connect(self._nav_reset)
+		_description_panel.explain_pressed.connect(self._nav_explain)
 		
 		_description_panel.next_enabled = false
 		_description_panel.prev_enabled = false
 		_description_panel.start_enabled = false
+		_description_panel.explain_enabled = false
 		
 		_description_panel.mechanic_description = ""
 		_description_panel.strat_description = ""
@@ -117,6 +119,7 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 	_description_panel.next_enabled = false
 	_description_panel.prev_enabled = false
 	_description_panel.start_enabled = false
+	_description_panel.explain_enabled = false
 	
 	match new_state:
 		State.SETTING_UP:
@@ -130,23 +133,28 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 				# We're on the first step. We always assume here that the strat has a first step that does nothing but
 				#   initial setup, and that no user decisions are actually necessary.
 				_description_panel.start_enabled = true
-				print("Waiting for start button press...")
+				_description_panel.explain_enabled = true
+				print("Waiting for start or explain button press...")
 			else:
 				match _mode:
 					Mode.EXPLANATION:
-						# We're in explanation mode. Draw arrows indicating where each token should move next and wait
-						#   for the user to press the Next button.
+						# Show the explanation message for the current step.
+						var explainer_message: Array[String] = _get_explainer_message(__current_step)
+						var concatenator: String = tr("COMMON_SENTENCE_SEPARATOR")
+						_description_panel.strat_description = concatenator.join(explainer_message)
+
+						# Wait for the user to press the Next button.
 						_description_panel.next_enabled = true
 						print("Waiting for next button press on step %d..." % new_step)
 					Mode.TUTORIAL, Mode.PRACTICE:
 						# Save off the list of valid movements the user could make this step.
-						var all_valid_movements: Dictionary = _get_valid_movements(__current_step)
+						var all_valid_movements: Dictionary = _get_valid_movements(new_step)
 						__valid_locators.assign(
 							all_valid_movements[user_token] if all_valid_movements.has(user_token) else []
 						)
 						
 						# Activate any locators associated with this step.
-						if __try_activate_locators():
+						if __try_activate_locators(new_step):
 							print("Waiting for locator press on step %d..." % new_step)
 						else:
 							# No locators were activated, but we're still waiting for input. Show the Next button.
@@ -155,7 +163,7 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 			
 		State.PLAYER_MOVEMENT:
 			# Get the list of movements to perform.
-			var user_selection: Locator = __selected_locator if _needs_user_decision(__current_step) else null
+			var user_selection: Locator = __selected_locator if _needs_user_decision(new_step) else null
 			var movements: Dictionary = _get_actual_movements(new_step, user_selection)
 		
 			# Iterate through all players that have reported movement and move them to their selected locations.
@@ -185,8 +193,8 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 			pass
 			
 		State.STRAT_COMPLETE:
-			# TODO: Enable back button once undo is implemented.
-			pass
+			if previous_state != State.FAILING:
+				_description_panel.strat_description = tr("COMMON_STRAT_MESSAGE_COMPLETE")
 			
 		_:
 			assert(false, "Unknown state entered!")
@@ -299,7 +307,7 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 
 
 ##########
-## DESCRIPTION PANEL AND NAVIGATION
+## EXPLANATION AND NAVIGATION
 ##########
 
 
@@ -314,12 +322,35 @@ func _nav_prev() -> void:
 
 
 func _nav_start() -> void:
-	# We assume here that the start button is being shown because clicking start is the step to clear the state.
+	# We assume here that the only time the start button would be shown is if we have just finished the first setup step
+	#   and are waiting for the user to acknowledge that they want to start.
+	assert(__current_step == 0 and _current_state == State.WAITING_FOR_DECISION)
 	finish_state()
 
 
 func _nav_reset() -> void:
 	get_tree().reload_current_scene()
+
+
+func _nav_explain() -> void:
+	# We assume here that the only time the explanation button would be shown would be at the very start of a strat.
+	assert(__current_step == 0 and _current_state == State.WAITING_FOR_DECISION)
+	
+	_mode = Mode.EXPLANATION
+	
+	# Show the next button and show the setup step's explanation message.
+	_description_panel.next_enabled = true
+	_description_panel.explain_enabled = false
+	
+	var explainer_message: Array[String] = _get_explainer_message(__current_step)
+	var concatenator: String = tr("COMMON_SENTENCE_SEPARATOR")
+	_description_panel.strat_description = concatenator.join(explainer_message)
+
+
+# Gets the message to show to the player for this step in explanation mode. Returns an array of strings, which will be
+#   joined together by a locale-appropriate sentence separator.
+func _get_explainer_message(step_id: int) -> Array[String]:
+	return ["Explanation for step %d" % step_id]
 
 
 ##########
@@ -416,8 +447,8 @@ func _get_active_locators(step_id: int) -> Array[Locator]:
 
 # Activates the locators for the current step, as provided by get_active_locator_ids(). Returns whether any locators
 #   were activated.
-func __try_activate_locators() -> bool:
-	var active_locators: Array[Locator] = _get_active_locators(__current_step)
+func __try_activate_locators(step_id: int) -> bool:
+	var active_locators: Array[Locator] = _get_active_locators(step_id)
 	var found_any_locators: bool = false
 	for locator: Locator in find_children("", "Locator"):
 		if locator.state in [Locator.State.INCORRECT, Locator.State.CORRECT]:
@@ -508,7 +539,8 @@ func _get_next_step(step_id: int) -> int:
 	return -1
 
 
-# Gets the message to show to the player once they failed.
+# Gets the message to show to the player once they failed. Returns an array of strings, which will be joined together by
+#   a locale-appropriate sentence separator.
 func _get_failure_message(step_id: int, user_selection: Locator) -> Array[String]:
 	return ["Incorrect."]
 

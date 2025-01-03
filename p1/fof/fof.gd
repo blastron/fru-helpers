@@ -188,7 +188,28 @@ func _assign_bait_order():
 		
 		conga_token.add_tag(_bait_tags[bait_number])
 		bait_number += 1
-	
+
+
+##########
+## EXPLANATION
+##########
+
+
+func _get_explainer_message(step_id: int) -> Array[String]:
+	match step_id:
+		Step.CONGA_LINE:	return [tr("P1_FOF_EXPLAIN_CONGA")]
+		Step.TETHER_ONE:	return [tr("P1_FOF_FUSSLESS_EXPLAIN_TETHER_ONE")]
+		Step.TETHER_TWO:	return [tr("P1_FOF_FUSSLESS_EXPLAIN_TETHER_TWO")]
+		Step.TETHER_THREE:	return [tr("P1_FOF_FUSSLESS_EXPLAIN_TETHER_THREE")]
+		Step.TETHER_FOUR:	return [tr("P1_FOF_FUSSLESS_EXPLAIN_TETHER_FOUR")]
+		Step.MOVE_TO_BAITS:	return [tr("P1_FOF_FUSSLESS_EXPLAIN_CONGA_BAITS")]
+		Step.SHOT_ONE:		return [tr("P1_FOF_FUSSLESS_EXPLAIN_SHOT_ONE")]
+		Step.SHOT_TWO:		return [tr("P1_FOF_FUSSLESS_EXPLAIN_SHOT_TWO")]
+		Step.SHOT_THREE:	return [tr("P1_FOF_FUSSLESS_EXPLAIN_FINAL_SHOTS")]
+		Step.SHOT_FOUR:		return [tr("P1_FOF_FUSSLESS_EXPLAIN_FINAL_SHOTS")]
+		_: return ["Unknown step!"]
+
+
 ##########
 ## MOVEMENT
 ##########

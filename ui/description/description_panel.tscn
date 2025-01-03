@@ -3,7 +3,7 @@
 [ext_resource type="Theme" uid="uid://iyl3cwffycsv" path="res://ui/description/description.tres" id="1_bly2k"]
 [ext_resource type="Script" path="res://ui/description/description_panel.gd" id="2_ctigi"]
 
-[node name="description" type="HBoxContainer" node_paths=PackedStringArray("_title", "_mechanic_description", "_strat_description", "_next_button", "_prev_button", "_start_button", "_reset_button", "_menu_button")]
+[node name="description" type="HBoxContainer" node_paths=PackedStringArray("_title", "_mechanic_description", "_strat_description", "_next_button", "_prev_button", "_start_button", "_reset_button", "_explain_button", "_menu_button")]
 anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
@@ -25,6 +25,7 @@ _next_button = NodePath("PanelContainer/VBoxContainer/buttons/back_next/next_but
 _prev_button = NodePath("PanelContainer/VBoxContainer/buttons/back_next/prev_button")
 _start_button = NodePath("PanelContainer/VBoxContainer/buttons/reset_start/start_button")
 _reset_button = NodePath("PanelContainer/VBoxContainer/buttons/reset_start/reset_button")
+_explain_button = NodePath("PanelContainer/VBoxContainer/buttons/back_next/explain_button")
 _menu_button = NodePath("menu button")
 
 [node name="menu button" type="Button" parent="."]
@@ -119,6 +120,15 @@ size_flags_horizontal = 3
 focus_mode = 0
 theme = ExtResource("1_bly2k")
 text = "NEXT"
+
+[node name="explain_button" type="Button" parent="PanelContainer/VBoxContainer/buttons/back_next"]
+visible = false
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme = ExtResource("1_bly2k")
+text = "explain"
 
 [node name="reset_start" type="HBoxContainer" parent="PanelContainer/VBoxContainer/buttons"]
 layout_mode = 2
