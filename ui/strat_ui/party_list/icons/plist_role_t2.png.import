@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://mp6ei6jsyiw0"
-path="res://.godot/imported/prey.png-fab13541a2102f2bfac6aea8bb866dc8.ctex"
+uid="uid://cdoci457wlxc1"
+path="res://.godot/imported/plist_role_t2.png-2a6776ba184c8b08a340dad55ff739e3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ui/party_list/buffs/common_icons/prey.png"
-dest_files=["res://.godot/imported/prey.png-fab13541a2102f2bfac6aea8bb866dc8.ctex"]
+source_file="res://ui/strat_ui/party_list/icons/plist_role_t2.png"
+dest_files=["res://.godot/imported/plist_role_t2.png-2a6776ba184c8b08a340dad55ff739e3.ctex"]
 
 [params]
 

@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://dqir6acd01442"]
 
-[ext_resource type="Script" path="res://ui/party_list/party_list.gd" id="1_yra4t"]
-[ext_resource type="PackedScene" uid="uid://cqv1v8437xn37" path="res://ui/party_list/party_list_row.tscn" id="2_wmcm0"]
+[ext_resource type="Script" path="res://ui/strat_ui/party_list/party_list.gd" id="1_yra4t"]
+[ext_resource type="PackedScene" uid="uid://cqv1v8437xn37" path="res://ui/strat_ui/party_list/party_list_row.tscn" id="2_wmcm0"]
 
 [node name="party list" type="Container" node_paths=PackedStringArray("_list")]
 offset_left = 12.0

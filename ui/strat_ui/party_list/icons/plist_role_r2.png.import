@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://xxeq2gxefaa2"
-path="res://.godot/imported/plist_role_t1.png-c357dc99a45f8af7ab2bc8ea1247a2a8.ctex"
+uid="uid://d0opfd7mgqaol"
+path="res://.godot/imported/plist_role_r2.png-039e983e6297f5a626a5e07fd55c7878.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ui/party_list/icons/plist_role_t1.png"
-dest_files=["res://.godot/imported/plist_role_t1.png-c357dc99a45f8af7ab2bc8ea1247a2a8.ctex"]
+source_file="res://ui/strat_ui/party_list/icons/plist_role_r2.png"
+dest_files=["res://.godot/imported/plist_role_r2.png-039e983e6297f5a626a5e07fd55c7878.ctex"]
 
 [params]
 

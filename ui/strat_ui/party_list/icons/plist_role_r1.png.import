@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://di1iylapl1ts3"
-path="res://.godot/imported/plist_self_hovered.png-3659a650cd82738f166926de1e3b7e81.ctex"
+uid="uid://br5abevoq8xbl"
+path="res://.godot/imported/plist_role_r1.png-5d50dadbcc75ac8037ac4fc87268d575.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ui/party_list/icons/plist_self_hovered.png"
-dest_files=["res://.godot/imported/plist_self_hovered.png-3659a650cd82738f166926de1e3b7e81.ctex"]
+source_file="res://ui/strat_ui/party_list/icons/plist_role_r1.png"
+dest_files=["res://.godot/imported/plist_role_r1.png-5d50dadbcc75ac8037ac4fc87268d575.ctex"]
 
 [params]
 

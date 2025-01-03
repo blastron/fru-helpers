@@ -3,7 +3,7 @@
 [ext_resource type="FontFile" uid="uid://dv1ag4v60rghi" path="res://ui/fonts/KOMTXT__.ttf" id="1_swxvn"]
 [ext_resource type="FontFile" uid="uid://c153uvscdsse2" path="res://ui/fonts/ltromatic.ttf" id="1_yhgqq"]
 [ext_resource type="FontFile" uid="uid://dvy7p8mf4glh6" path="res://ui/fonts/KOMTXTB_.ttf" id="2_tnkcq"]
-[ext_resource type="StyleBox" uid="uid://br8fykdjuw1k2" path="res://ui/description/description_panel.tres" id="2_xasp7"]
+[ext_resource type="StyleBox" uid="uid://br8fykdjuw1k2" path="res://ui/strat_ui/description/description_panel.tres" id="2_xasp7"]
 [ext_resource type="FontFile" uid="uid://cpi4oiok668ut" path="res://ui/fonts/KOMTXTBI.ttf" id="3_dagnc"]
 [ext_resource type="FontFile" uid="uid://0cyftnayelvk" path="res://ui/fonts/KOMTXTI_.ttf" id="4_buh7u"]
 

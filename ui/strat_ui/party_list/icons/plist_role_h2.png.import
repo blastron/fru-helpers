@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d2ccenfxq8bv3"
-path="res://.godot/imported/ruin_ddown.png-db38cccacd68a3c2b5cacce2898141f9.ctex"
+uid="uid://ca28up7sh3tjy"
+path="res://.godot/imported/plist_role_h2.png-9c51642a8c0ee032581c7789fc9b5ccc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ui/party_list/buffs/common_icons/ruin_ddown.png"
-dest_files=["res://.godot/imported/ruin_ddown.png-db38cccacd68a3c2b5cacce2898141f9.ctex"]
+source_file="res://ui/strat_ui/party_list/icons/plist_role_h2.png"
+dest_files=["res://.godot/imported/plist_role_h2.png-9c51642a8c0ee032581c7789fc9b5ccc.ctex"]
 
 [params]
 
