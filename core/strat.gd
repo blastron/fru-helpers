@@ -364,6 +364,7 @@ func _nav_explain() -> void:
 	
 	# Show the next button and show the setup step's explanation message.
 	_description_panel.next_enabled = true
+	_description_panel.start_enabled = false
 	_description_panel.explain_enabled = false
 	
 	var explainer_message: Array[String] = _get_explainer_message(__current_step)
