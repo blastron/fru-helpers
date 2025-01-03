@@ -151,12 +151,6 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 						_description_panel.next_enabled = true
 						print("Waiting for next button press on step %d..." % new_step)
 					Mode.TUTORIAL, Mode.PRACTICE:
-						# Save off the list of valid movements the user could make this step.
-						var all_valid_movements: Dictionary = _get_valid_movements(new_step)
-						__valid_locators.assign(
-							all_valid_movements[user_token] if all_valid_movements.has(user_token) else []
-						)
-						
 						# Activate any locators associated with this step.
 						if __try_activate_locators(new_step):
 							print("Waiting for locator press on step %d..." % new_step)
@@ -258,7 +252,16 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 	match current_state:
 		State.SETTING_UP:
 			# Setup logic has finished. Check to see if we require player input.
-			if _needs_user_decision(current_step):
+			__all_valid_locators = _get_valid_movements(current_step)
+			if current_step == 0:
+				# Always wait for user decision on the first step, since we require the user to press the start button.
+				jump_to_state(current_step, State.WAITING_FOR_DECISION)
+			elif _mode == Mode.EXPLANATION:
+				# In explainer mode, if there is movement to perform, we want the user to have to press the next button.
+				if not __all_valid_locators.is_empty(): jump_to_state(current_step, State.WAITING_FOR_DECISION)
+				else: jump_to_state(current_step, State.PLAYER_MOVEMENT)
+			elif _needs_user_decision(current_step):
+				# The strat wants the player to make a decision.
 				jump_to_state(current_step, State.WAITING_FOR_DECISION)
 			else:
 				jump_to_state(current_step, State.PLAYER_MOVEMENT)
@@ -270,12 +273,13 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 					child.queue_free()
 		
 			# TODO: handle undo
-			if __selected_locator and not __valid_locators.has(__selected_locator):
+			var user_locators = __all_valid_locators[user_token] if __all_valid_locators.has(user_token) else []
+			if __selected_locator and not user_locators.has(__selected_locator):
 				# The user selected the incorrect locator. Mark it as incorrect, then highlight the valid locators.
 				if __selected_locator:
 					__selected_locator.state = Locator.State.INCORRECT
 		
-				for valid_locator in __valid_locators:
+				for valid_locator in user_locators:
 					valid_locator.state = Locator.State.CORRECT
 		
 				# Show the error message.
@@ -313,6 +317,17 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 			
 		_:
 			assert(false, "Unknown state exited!")
+
+
+# Either moves to the next step in the strat or jumps to Complete.
+func _advance_step(current_step: int) -> void:
+	var next_step_id: int = _get_next_step(current_step)
+	if next_step_id >= 0:
+		jump_to_state(next_step_id, State.SETTING_UP)
+	else:
+		# The user has completed the strat.
+		jump_to_state(current_step, State.STRAT_COMPLETE)
+	
 
 
 ##########
@@ -369,9 +384,8 @@ const __explainer_arrow_border_color: Color = Color(0.17, 0.17, 0.17)
 # Draws arrows indicating how tokens should move. By default, retrieves the list of valid movements and draws straight
 #   lines from the token to its intended destination.
 func _show_explainer_arrows(step_id: int) -> void:
-	var all_valid_movements: Dictionary = _get_valid_movements(step_id)
-	for token in all_valid_movements.keys():
-		var possible_destinations: Array = all_valid_movements[token]
+	for token in __all_valid_locators.keys():
+		var possible_destinations: Array = __all_valid_locators[token]
 		for destination in possible_destinations:
 			# Determine how long the arrow is.
 			var relative_destination: Vector2  = destination.position - token.position
@@ -451,7 +465,7 @@ func _process_setup(step_id: int, substep_id: int, delta: float) -> void:
 
 # Returns whether the user needs to make a decision on this step. Override this in your strat.
 func _needs_user_decision(step_id: int) -> bool:
-	return step_id == 0 or _mode == Mode.EXPLANATION
+	return false
 
 
 # Gets lists of valid locations that each player can move to. If a player either is not part of the output or if they
@@ -473,8 +487,7 @@ func _get_valid_movements(step_id: int) -> Dictionary:
 #   the user's token go to a location other than their selection, if desired.
 func _get_actual_movements(step_id: int, user_selection: Locator) -> Dictionary:
 	var output: Dictionary = {}
-	var valid_movements: Dictionary = _get_valid_movements(step_id)
-	for key in valid_movements.keys():
+	for key in __all_valid_locators.keys():
 		var player_token: PlayerToken = key
 		if player_token.player_data.dead:
 			# Dead players do not move.
@@ -484,10 +497,10 @@ func _get_actual_movements(step_id: int, user_selection: Locator) -> Dictionary:
 			output[player_token] = user_selection
 			continue
 		
-		if valid_movements[key].is_empty(): continue
+		if __all_valid_locators[key].is_empty(): continue
 	
 		var destinations: Array[Locator]
-		destinations.assign(valid_movements[key])
+		destinations.assign(__all_valid_locators[key])
 
 		if len(destinations) > 1:
 			# In the case where multiple locations are valid, pick the one that is closest to the player's
@@ -597,7 +610,12 @@ var __selected_locator: Locator = null
 
 # The locators that should have been selected, but weren't. Used to highlight correct choices at the end of any
 #   post-failure resolution operations.
-var __valid_locators: Array[Locator]
+var __valid_user_locators: Array[Locator]
+
+
+# The mapping of all tokens that want movement to the possible locations they could move. Assigned right after each
+#   setup step by calling _get_valid_movements().
+var __all_valid_locators: Dictionary
 
 
 # Gets index of the next step. Returns -1 if there is no next step to advance to, either because the strat is complete
@@ -700,6 +718,7 @@ func __destroy_indicator(indicator_name: String, fade_time: float) -> void:
 	__permanent_indicators.erase(indicator_name)
 
 	if fade_time > 0: add_dependency(found_indicator)
+	found_indicator.destroy(fade_time)
 	
 	
 ## CONES
@@ -713,6 +732,8 @@ func create_cone(indicator_name: String, position: Vector2, rotation: float, rad
 		print("Attempted to create a permanent cone named %s, but an indicator with that name already existed." %
 			indicator_name)
 		return null	
+		
+	print("Creating a %s cone named %s" % ["permanent" if lifespan == 0 else "temporary", cone_name])
 	
 	var cone: Cone = Cone.new(radius, arc_width, color, lifespan)
 	cone.name = cone_name
@@ -735,15 +756,18 @@ func destroy_cone(indicator_name: String, fade_time: float = 0) -> void:
 
 func create_circle(indicator_name: String, position: Vector2, radius: float, invert: bool, color: Color,
 		lifespan: float = 0) -> Circle:
-	var circle_name: String = "%s (cone)" % indicator_name
+	var circle_name: String = "%s (circle)" % indicator_name
 	
 	if lifespan <= 0 and __permanent_indicators.has(circle_name):
 		print("Attempted to create a permanent circle named %s, but an indicator with that name already existed." %
 		circle_name)
 		return null
+		
+	print("Creating a %s circle named %s" % ["permanent" if lifespan == 0 else "temporary", circle_name])
+
 
 	var circle: Circle = Circle.new(radius, invert, color, lifespan)
-	circle.name = "%s (circle)" % circle_name
+	circle.name = circle_name
 	circle.position = position
 	indicator_layer.add_child(circle)
 
@@ -802,8 +826,24 @@ func find_tether(tether_name: String) -> Tether:
 ## TIMERS
 
 
-func set_delay(time: float) -> void:
+func add_delay_dependency(time: float) -> void:
 	add_dependency(TimerTask.new(time))
+
+	
+## NAVIGATION EVENTS
+
+
+# Temporarily enables the next button and adds clicking it as a dependency for the current substep.
+func add_next_button_dependency() -> void:
+	var signal_task: WaitForSignalTask = WaitForSignalTask.new(_description_panel.next_pressed)
+	add_dependency(signal_task)
+	signal_task.task_completed.connect(self.__next_button_dependency_triggered)
+	_description_panel.next_enabled = true
+
+
+func __next_button_dependency_triggered(task: WaitForSignalTask):
+	_description_panel.next_enabled = false
+	task.task_completed.disconnect(self.__next_button_dependency_triggered)
 
 
 ##########

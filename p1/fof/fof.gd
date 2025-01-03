@@ -9,6 +9,7 @@ const _lightning_color: Color = Color(0.18, 0.92, 0.92)
 
 const _fire_cone_arc: float = deg_to_rad(90)
 const _lightning_cone_arc: float = deg_to_rad(240)
+const _cone_duration: float = 1
 
 
 @export_group("Tokens")
@@ -379,12 +380,17 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 
 
 func _resolve_tether(tether_number: int, substep: int) -> void:
+	var permanent_cones: bool = _mode == Mode.EXPLANATION
 	if tether_number == 0:
 		match substep:
 			0: # No clones need to dash, so we just fire the first set of cones.
-				_launch_cones(tether_number, false)
+				_launch_cones(tether_number, permanent_cones)
+				if permanent_cones:
+					add_next_button_dependency()
 				finish_substep()
 			1:
+				if permanent_cones:
+					_clear_cones(tether_number, false)
 				_remove_vulns()
 				finish_state()
 	else:
@@ -396,9 +402,13 @@ func _resolve_tether(tether_number: int, substep: int) -> void:
 				clone.approach_position(target.position, 75, 1000)
 				finish_substep()
 			1:	# Fire cones
-				_launch_cones(tether_number, false)
+				_launch_cones(tether_number, permanent_cones)
+				if permanent_cones:
+					add_next_button_dependency()
 				finish_substep()
 			2:	# Clone dashes out
+				if permanent_cones:
+					_clear_cones(tether_number, false)
 				add_dependency(clone)
 				clone.on_stage = false
 				_remove_vulns()
@@ -406,7 +416,7 @@ func _resolve_tether(tether_number: int, substep: int) -> void:
 				finish_state()
 
 
-func _launch_cones(tether_number: int, instant: bool) -> void:
+func _launch_cones(tether_number: int, permanent: bool) -> void:
 	var target: PlayerToken = find_token_by_tag(_tether_tags[tether_number])
 	_apply_damage(target)
 	
@@ -429,7 +439,7 @@ func _launch_cones(tether_number: int, instant: bool) -> void:
 		var rotation: float = origin.angle_to_point(bait_location)
 		
 		var cone_name: String = "fof_cone_%d_%d" % [tether_number, bait_index]
-		create_cone(cone_name, origin, rotation, -1, arc_width, color, 1 if not instant else 0)
+		create_cone(cone_name, origin, rotation, -1, arc_width, color, _cone_duration if not permanent else 0)
 		
 		var cone_hits: Array[Token] = filter_in_cone(other_players, origin, rotation, 10000, arc_width)
 		for cone_hit in cone_hits:
@@ -439,11 +449,18 @@ func _launch_cones(tether_number: int, instant: bool) -> void:
 				hit_players.append(hit_player)
 				
 	# Apply ruin debuff if there weren't three people in the stack.
-	# TODO: The fussless strat is super forgiving and lets the middle player stand basically wherever. We need to cheat here.
 	if is_fire and len(hit_players) < 4:
 		for player in hit_players:
 			if not player.player_data.has_buff(_ruin_debuff):
 				player.player_data.add_buff(_ruin_debuff)
+
+
+func _clear_cones(tether_number: int, instant: bool) -> void:
+	var target: PlayerToken = find_token_by_tag(_tether_tags[tether_number])
+	var is_fire: bool = target.has_tag("fire")
+	for bait_index in range(1 if is_fire else 3):
+		var cone_name: String = "fof_cone_%d_%d" % [tether_number, bait_index]
+		destroy_cone(cone_name, 0.25 if not instant else 0)
 
 
 func _apply_damage(target: PlayerToken) -> void:
@@ -555,8 +572,8 @@ func _get_failure_message(step_id: int, user_selection: Locator) -> Array[String
 func _enter_failure(step_id: int, substep_id: int) -> void:
 	if substep_id == 0: # Move everyone into position.
 		var user_selection: Locator = _get_incorrect_selection()
-		user_token.move_to_locator(user_selection)
 		add_dependency(user_token)
+		user_token.move_to_locator(user_selection)
 		
 		# Assign any remaining tethers and conga spots. The user will have already been assigned their role by the time
 		#   we get here, since that happens before they make any choices.
@@ -580,23 +597,23 @@ func _enter_failure(step_id: int, substep_id: int) -> void:
 			#   as the baiting players don't react to anything.
 			var bait_1: Token = find_token_by_tag(_bait_tags[0])
 			if bait_1 != user_token:
-				bait_1.move_to_locator(_locator_west_out)
 				add_dependency(bait_1)
-		
+				bait_1.move_to_locator(_locator_west_out)
+			
 			var bait_2: Token = find_token_by_tag(_bait_tags[1])
 			if bait_2 != user_token:
-				bait_2.move_to_locator(_locator_west_south)
 				add_dependency(bait_2)
+				bait_2.move_to_locator(_locator_west_south)
 			
 			var bait_3: Token = find_token_by_tag(_bait_tags[2])
 			if bait_3 != user_token:
-				bait_3.move_to_locator(_locator_east_south)
 				add_dependency(bait_3)
+				bait_3.move_to_locator(_locator_east_south)
 			
 			var bait_4: Token = find_token_by_tag(_bait_tags[3])
 			if bait_4 != user_token:
-				bait_4.move_to_locator(_locator_east_out)
 				add_dependency(bait_4)
+				bait_4.move_to_locator(_locator_east_out)
 
 		# Move the tether target players into place. If the user is standing in one of the two tether spots on that
 		#   side, select the other one; otherwise, go to the correct location for the given tether configuration.
