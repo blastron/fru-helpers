@@ -4,10 +4,6 @@
 [ext_resource type="PackedScene" uid="uid://cqv1v8437xn37" path="res://ui/strat_ui/party_list/party_list_row.tscn" id="2_wmcm0"]
 
 [node name="party list" type="Container" node_paths=PackedStringArray("_list")]
-offset_left = 12.0
-offset_top = 20.0
-offset_right = 58.0
-offset_bottom = 352.0
 script = ExtResource("1_yra4t")
 _list = NodePath("list")
 _row_type = ExtResource("2_wmcm0")

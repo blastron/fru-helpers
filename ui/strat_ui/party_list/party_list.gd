@@ -1,12 +1,11 @@
-extends Node
+class_name PartyList extends Node
+
 
 @export var _list: VBoxContainer
 @export var _row_type: PackedScene
 
-func _ready() -> void:
-	_load_party_list()
-	
-func _load_party_list() -> void:
+
+func set_player_data(player_data: Array[PlayerData]) -> void:
 	if not _list:
 		return
 
@@ -15,7 +14,7 @@ func _load_party_list() -> void:
 		_list.remove_child(child)
 		child.queue_free()
 	
-	var player_data: Array[PlayerData] = UserSettings.player_data
+	# Create new rows for each player in the list.
 	for data in player_data:
 		var new_row: PartyListRow = _row_type.instantiate()
 		new_row.player_data = data

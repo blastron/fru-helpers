@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://dik1njrfehd1s"]
+
+[ext_resource type="Script" path="res://ui/strat_ui/strat_ui.gd" id="1_vdb8f"]
+[ext_resource type="PackedScene" uid="uid://dqir6acd01442" path="res://ui/strat_ui/party_list/party_list.tscn" id="2_w30gm"]
+[ext_resource type="PackedScene" uid="uid://blp7ojt3267u1" path="res://ui/strat_ui/description/description_panel.tscn" id="3_aketb"]
+
+[node name="StratUi" type="CanvasLayer" node_paths=PackedStringArray("party_list", "description_panel")]
+script = ExtResource("1_vdb8f")
+party_list = NodePath("party list")
+description_panel = NodePath("description")
+
+[node name="party list" parent="." instance=ExtResource("2_w30gm")]
+offset_left = 10.0
+offset_top = 16.0
+offset_right = 10.0
+offset_bottom = 16.0
+
+[node name="description" parent="." instance=ExtResource("3_aketb")]
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -422.0
+offset_top = 16.0
+offset_right = -14.0
+offset_bottom = -10.0
+grow_horizontal = 0
+grow_vertical = 2

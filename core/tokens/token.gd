@@ -22,6 +22,16 @@ func _process(delta: float) -> void:
 	_process_movement(delta)
 
 
+# Whether or not this token is important and should be sorted to the top of the Z-order.
+var is_important: bool = false:
+	get: return is_important
+	set(value):
+		if is_important != value:
+			is_important = value
+			importance_changed.emit(self)
+signal importance_changed(token: Token)
+
+
 ##########
 ## TAGS
 ##########

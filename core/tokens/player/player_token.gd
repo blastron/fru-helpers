@@ -1,6 +1,8 @@
 class_name PlayerToken extends Token
 
+
 @export var _highlight: Sprite2D
+
 
 @export_group("Role Icons")
 @export var icon_job_t1: Texture2D
@@ -12,6 +14,7 @@ class_name PlayerToken extends Token
 @export var icon_job_r1: Texture2D
 @export var icon_job_r2: Texture2D
 @export var icon_job_unknown: Texture2D
+
 
 var player_data: PlayerData = null:
 	get: return player_data

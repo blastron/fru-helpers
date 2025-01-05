@@ -80,7 +80,7 @@ func _update_on_stage_visuals() -> void:
 	# If we're in the editor, show a semi-transparent icon to indicate we're on or off stage.
 	if Engine.is_editor_hint():
 		if icon: icon.self_modulate.a = 1.0 if on_stage else 0.3
-		if _hitbox: _hitbox.self_modulate.a = 1.0 if on_stage else 0.3
+		if hitbox: hitbox.self_modulate.a = 1.0 if on_stage else 0.3
 		return
 	
 	var displacement: Vector2 = Vector2(0, -_on_stage_displacement * ease(1 - _on_stage_percent, 2))
@@ -88,7 +88,7 @@ func _update_on_stage_visuals() -> void:
 	
 	var alpha: float = ease(_on_stage_percent, 2)
 	if icon: icon.self_modulate.a = alpha
-	if _hitbox: _hitbox.self_modulate.a = alpha
+	if hitbox: hitbox.self_modulate.a = alpha
 
 	
 ##########
@@ -131,27 +131,27 @@ func approach_position(target_location: Vector2, radius_override: float = -1, sp
 
 @export var hitbox_radius: float:
 	get:
-		return _hitbox.radius if _hitbox else 0.0
+		return hitbox.radius if hitbox else 0.0
 	set(value):
-		if _hitbox:
-			_hitbox.radius = value
+		if hitbox:
+			hitbox.radius = value
 
 
-@export var _hitbox: Hitbox
+@export var hitbox: Hitbox
 @export var show_hitbox: bool = true:
 	get:
-		return _hitbox.visible if _hitbox != null else false
+		return hitbox.visible if hitbox != null else false
 	set(value):
-		if _hitbox != null:
-			_hitbox.visible = value
+		if hitbox != null:
+			hitbox.visible = value
 
 
 @export var hitbox_angle: float = -PI / 2:
 	get:
-		return _hitbox.rotation if _hitbox != null else 0.0
+		return hitbox.rotation if hitbox != null else 0.0
 	set(value):
-		if _hitbox != null:
-			_hitbox.rotation = wrapf(value, -PI, PI)
+		if hitbox != null:
+			hitbox.rotation = wrapf(value, -PI, PI)
 
 
 const _spin_rate: float = PI * 6

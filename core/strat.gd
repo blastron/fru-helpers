@@ -1,19 +1,9 @@
 class_name Strat extends ScriptedSequence
 
 
-# UI elements
-@export var _description_panel: DescriptionPanel
-
-
-# Layers
-@export var indicator_layer: Node2D
-@export var token_layer: Node2D
-@export var player_layer: Node2D
-@export var explainer_layer: Node2D
-
-
-# Subscene types
-@export var __player_token_type: PackedScene
+# Common UI containers
+@export var __ui: StratUi
+@export var _arena: Arena
 
 
 var player_tokens: Array[PlayerToken]
@@ -40,20 +30,7 @@ enum State {
 
 # Gets the name of the state for logging purposes.
 func get_state_name(state: State) -> String:
-	match state:
-		State.SETTING_UP:
-			return "SETTING_UP"
-		State.WAITING_FOR_DECISION:
-			return "WAITING_FOR_DECISION"
-		State.PLAYER_MOVEMENT:
-			return "PLAYER_MOVEMENT"
-		State.RESOLVING:
-			return "RESOLVING"
-		State.FAILING:
-			return "FAILING"
-		State.STRAT_COMPLETE:
-			return "STRAT_COMPLETE"
-	return "UNKNOWN"
+	return State.keys()[state]
 
 
 ##########
@@ -62,47 +39,36 @@ func get_state_name(state: State) -> String:
 
 
 func _ready() -> void:
+	# Reset temporary state on the player data, since we aren't doing a deep copy.
+	for player in UserSettings.player_data:
+		player.reset_temporary_state()
+	
 	# Bind to signals from the description pane.
-	if _description_panel:
-		_description_panel.next_pressed.connect(self._nav_next)
-		_description_panel.prev_pressed.connect(self._nav_prev)
-		_description_panel.start_pressed.connect(self._nav_start)
-		_description_panel.reset_pressed.connect(self._nav_reset)
-		_description_panel.explain_pressed.connect(self._nav_explain)
+	if __ui:
+		# Bind to navigation events.
+		__ui.description_panel.next_pressed.connect(self._nav_next)
+		__ui.description_panel.prev_pressed.connect(self._nav_prev)
+		__ui.description_panel.start_pressed.connect(self._nav_start)
+		__ui.description_panel.reset_pressed.connect(self._nav_reset)
+		__ui.description_panel.explain_pressed.connect(self._nav_explain)
 		
-		_description_panel.next_enabled = false
-		_description_panel.prev_enabled = false
-		_description_panel.start_enabled = false
-		_description_panel.explain_enabled = false
+		# Fill the party list.
+		__ui.party_list.set_player_data(UserSettings.player_data)
 		
-		_description_panel.mechanic_description = ""
-		_description_panel.strat_description = ""
-	
-	# Bind to the on-click signals for all locators.
-	for locator: Locator in find_children("", "Locator"):
-		locator.on_clicked.connect(self.__locator_pressed)
+	if _arena:
+		# Start listening for clicks on the locators in the arena.
+		_arena.connect_locator_signals(self.__locator_pressed)
 		
-	# Reset player data.
-	for player_data in UserSettings.player_data:
-		player_data.reset_temporary_state()
-	
-	# Create common objects from configuration data.
-	__create_player_tokens()
+		# Create player tokens and save off which is the user-controlled one.
+		player_tokens = _arena.create_player_tokens(UserSettings.player_data)
+		for token in player_tokens:
+			if token.player_data.user_controlled:
+				user_token = token
+				break
 	
 	# Call the super function after all setup has completed, in case the state machine tries to do something requiring
 	#   specific setup to already be complete.
 	super()
-
-	
-func __create_player_tokens() -> void:
-	for player_data in UserSettings.player_data:
-		var new_token: PlayerToken = __player_token_type.instantiate()
-		new_token.player_data = player_data
-		if player_data.user_controlled:
-			user_token = new_token
-	
-		player_layer.add_child(new_token)
-		player_tokens.append(new_token)
 	
 	
 ##########
@@ -117,10 +83,10 @@ func jump_to_first_state() -> void:
 func on_state_entered(new_step: int, new_state: int, previous_step: int, previous_state: int) -> void:
 	# Disable user input by default. Individual states should re-enable it as necessary.
 	__deactivate_locators()
-	_description_panel.next_enabled = false
-	_description_panel.prev_enabled = false
-	_description_panel.start_enabled = false
-	_description_panel.explain_enabled = false
+	__ui.description_panel.next_enabled = false
+	__ui.description_panel.prev_enabled = false
+	__ui.description_panel.start_enabled = false
+	__ui.description_panel.explain_enabled = false
 	
 	match new_state:
 		State.SETTING_UP:
@@ -128,7 +94,7 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 				# Show the explanation message for the current step.
 				var explainer_message: Array[String] = _get_explainer_message(new_step)
 				var concatenator: String = tr("COMMON_SENTENCE_SEPARATOR")
-				_description_panel.strat_description = concatenator.join(explainer_message)
+				__ui.description_panel.strat_description = concatenator.join(explainer_message)
 
 			# All setup logic happens during substeps, so we don't need to do anything here.
 			pass
@@ -139,8 +105,8 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 			if new_step == 0:
 				# We're on the first step. We always assume here that the strat has a first step that does nothing but
 				#   initial setup, and that no user decisions are actually necessary.
-				_description_panel.start_enabled = true
-				_description_panel.explain_enabled = true
+				__ui.description_panel.start_enabled = true
+				__ui.description_panel.explain_enabled = true
 				print("Waiting for start or explain button press...")
 			else:
 				match _mode:
@@ -148,7 +114,7 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 						_show_explainer_arrows(new_step)
 						
 						# Wait for the user to press the Next button.
-						_description_panel.next_enabled = true
+						__ui.description_panel.next_enabled = true
 						print("Waiting for next button press on step %d..." % new_step)
 					Mode.TUTORIAL, Mode.PRACTICE:
 						# Activate any locators associated with this step.
@@ -156,7 +122,7 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 							print("Waiting for locator press on step %d..." % new_step)
 						else:
 							# No locators were activated, but we're still waiting for input. Show the Next button.
-							_description_panel.next_enabled = true
+							__ui.description_panel.next_enabled = true
 							print("Waiting for next button press on step %d..." % new_step)
 			
 		State.PLAYER_MOVEMENT:
@@ -192,7 +158,7 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 			
 		State.STRAT_COMPLETE:
 			if previous_state != State.FAILING:
-				_description_panel.strat_description = tr("COMMON_STRAT_MESSAGE_COMPLETE")
+				__ui.description_panel.strat_description = tr("COMMON_STRAT_MESSAGE_COMPLETE")
 			
 		_:
 			assert(false, "Unknown state entered!")
@@ -268,9 +234,8 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 			
 		State.WAITING_FOR_DECISION:
 			if _mode == Mode.EXPLANATION:
-				for child in explainer_layer.get_children():
-					explainer_layer.remove_child(child)
-					child.queue_free()
+				# Remove all explainer elements.
+				_arena.clear_explainers()
 		
 			# TODO: handle undo
 			var user_locators = __all_valid_locators[user_token] if __all_valid_locators.has(user_token) else []
@@ -285,7 +250,7 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 				# Show the error message.
 				var failure_message: Array[String] = _get_failure_message(current_step, __selected_locator)
 				var concatenator: String = tr("COMMON_SENTENCE_SEPARATOR")
-				_description_panel.strat_description = concatenator.join(failure_message)
+				__ui.description_panel.strat_description = concatenator.join(failure_message)
 			
 				# Skip to failure resolution.
 				jump_to_state(current_step, State.FAILING)
@@ -363,13 +328,13 @@ func _nav_explain() -> void:
 	_mode = Mode.EXPLANATION
 	
 	# Show the next button and show the setup step's explanation message.
-	_description_panel.next_enabled = true
-	_description_panel.start_enabled = false
-	_description_panel.explain_enabled = false
+	__ui.description_panel.next_enabled = true
+	__ui.description_panel.start_enabled = false
+	__ui.description_panel.explain_enabled = false
 	
 	var explainer_message: Array[String] = _get_explainer_message(__current_step)
 	var concatenator: String = tr("COMMON_SENTENCE_SEPARATOR")
-	_description_panel.strat_description = concatenator.join(explainer_message)
+	__ui.description_panel.strat_description = concatenator.join(explainer_message)
 
 
 # Gets the message to show to the player for this step in explanation mode. Returns an array of strings, which will be
@@ -378,8 +343,6 @@ func _get_explainer_message(step_id: int) -> Array[String]:
 	return ["Explanation for step %d" % step_id]
 
 
-const __explainer_arrow_color: Color = Color(0.98, 0.36, 0.26)
-const __explainer_arrow_border_color: Color = Color(0.17, 0.17, 0.17)
 
 
 # Draws arrows indicating how tokens should move. By default, retrieves the list of valid movements and draws straight
@@ -429,11 +392,9 @@ func _show_explainer_arrows(step_id: int) -> void:
 					token.position + arrow_direction * source_offset,
 					destination.position - arrow_direction * destination_offset
 				]
-
-				var arrow: Arrow = Arrow.new(points)
-				arrow.color = __explainer_arrow_color
-				arrow.border_color = __explainer_arrow_border_color
-				explainer_layer.add_child(arrow)
+			
+				# Add the arrow to the arena.
+				_arena.add_explainer_arrow(points)
 
 
 ##########
@@ -553,13 +514,13 @@ func __deactivate_locators() -> void:
 	if user_token != null:
 		user_token.input_highlight = false
 
-	for locator: Locator in find_children("", "Locator"):
+	for locator: Locator in _arena.get_locators():
 		if locator.state in [Locator.State.INCORRECT, Locator.State.CORRECT]:
 			# Don't reset locators we're using to show the results of a user decision. It's okay for us to get here even
 			#   after failure, as we still want to be able to deactivate locators after the user's interaction.
 			continue
 		
-		locator.state = locator.initial_state
+		locator.state = Locator.State.DISABLED
 
 		
 func __locator_pressed(locator: Locator) -> void:
@@ -703,125 +664,26 @@ func _downcast_player_tokens(tokens: Array[PlayerToken]) -> Array[Token]:
 	
 	
 ##########
-## INDICATORS
+## TASKS
 ##########
 
 
-var __permanent_indicators: Dictionary
+## INDICATORS
 
 
-func __destroy_indicator(indicator_name: String, fade_time: float) -> void:
-	if not __permanent_indicators.has(indicator_name):
-		print("Attempted to remove an indicator %s, but none existed." % name)
-		return
-
-	var found_indicator: Indicator = __permanent_indicators[indicator_name]
-	__permanent_indicators.erase(indicator_name)
-
-	if fade_time > 0: add_dependency(found_indicator)
-	found_indicator.destroy(fade_time)
+func wait_for_fade_in(indicator: Indicator, time: float) -> void:
+	indicator.fade_in(time)
+	add_dependency(indicator)
 	
 	
-## CONES
+func wait_for_fade_out(indicator: Indicator, time: float) -> void:
+	indicator.fade_out(time)
+	add_dependency(indicator)
 
 
-func create_cone(indicator_name: String, position: Vector2, rotation: float, radius: float, arc_width: float,
-		color: Color, lifespan: float = 0) -> Cone:
-	var cone_name: String = "%s (cone)" % indicator_name
-	
-	if lifespan <= 0 and __permanent_indicators.has(cone_name):
-		print("Attempted to create a permanent cone named %s, but an indicator with that name already existed." %
-			indicator_name)
-		return null	
-		
-	print("Creating a %s cone named %s" % ["permanent" if lifespan == 0 else "temporary", cone_name])
-	
-	var cone: Cone = Cone.new(radius, arc_width, color, lifespan)
-	cone.name = cone_name
-	cone.position = position
-	cone.rotation = rotation
-	indicator_layer.add_child(cone)
-	
-	if lifespan <= 0: __permanent_indicators[cone_name] = cone
-	else: add_dependency(cone)
-	
-	return cone
-
-	
-func destroy_cone(indicator_name: String, fade_time: float = 0) -> void:
-	__destroy_indicator("%s (cone)" % indicator_name, fade_time)
-
-	
-## CIRCLES
-
-
-func create_circle(indicator_name: String, position: Vector2, radius: float, invert: bool, color: Color,
-		lifespan: float = 0) -> Circle:
-	var circle_name: String = "%s (circle)" % indicator_name
-	
-	if lifespan <= 0 and __permanent_indicators.has(circle_name):
-		print("Attempted to create a permanent circle named %s, but an indicator with that name already existed." %
-		circle_name)
-		return null
-		
-	print("Creating a %s circle named %s" % ["permanent" if lifespan == 0 else "temporary", circle_name])
-
-
-	var circle: Circle = Circle.new(radius, invert, color, lifespan)
-	circle.name = circle_name
-	circle.position = position
-	indicator_layer.add_child(circle)
-
-	if lifespan <= 0: __permanent_indicators[circle_name] = circle
-	else: add_dependency(circle)
-
-	return circle
-
-
-func destroy_pool(indicator_name: String, fade_time: float = 0) -> void:
-	__destroy_indicator("%s (circle)" % indicator_name, fade_time)
-	
-	
-## TETHERS
-# TODO: should tethers be indicators?? probably
-
-
-var __spawned_tethers: Dictionary
-
-
-# Creates a tether between two tokens. If instant is set to false, adds the animation to the dependencies.
-func create_tether(tether_name: String, token_a: Token, token_b: Token, color: Color, instant: bool = false) -> Tether:
-	if __spawned_tethers.has(tether_name):
-		print("Attempted to create a tether named %s, but one already existed." % tether_name)
-		return null
-	
-	var new_tether: Tether = Tether.new(token_a, token_b, color, instant)
-	new_tether.name = tether_name
-	indicator_layer.add_child(new_tether)
-	
-	if not instant: add_dependency(new_tether)
-	
-	__spawned_tethers[tether_name] = new_tether
-	return new_tether
-	
-
-# Destroys the tether with the given name. If instant is set to false, adds the animation to the dependencies.
-func destroy_tether(tether_name: String, instant: bool = false) -> void:
-	if not __spawned_tethers.has(tether_name):
-		print("Attempted to destroy a tether named %s, but none existed." % tether_name)
-		return
-	
-	var found_tether: Tether = __spawned_tethers[tether_name]
-	__spawned_tethers.erase(tether_name)
-	
-	if not instant: add_dependency(found_tether)
-	found_tether.destroy(instant)
-
-
-# Finds a tether with the given name. Asserts if one is not found.
-func find_tether(tether_name: String) -> Tether:
-	assert(__spawned_tethers.has(tether_name), "Attempted to find a tether named %s, but none existed." % tether_name)
-	return __spawned_tethers[tether_name]
+func wait_for_fade_in_out(indicator: Indicator, in_time: float, out_time: float) -> void:
+	indicator.fade_in_out(in_time, out_time)
+	add_dependency(indicator)
 
 
 ## TIMERS
@@ -836,14 +698,14 @@ func add_delay_dependency(time: float) -> void:
 
 # Temporarily enables the next button and adds clicking it as a dependency for the current substep.
 func add_next_button_dependency() -> void:
-	var signal_task: WaitForSignalTask = WaitForSignalTask.new(_description_panel.next_pressed)
+	var signal_task: WaitForSignalTask = WaitForSignalTask.new(__ui.description_panel.next_pressed)
 	add_dependency(signal_task)
 	signal_task.task_completed.connect(self.__next_button_dependency_triggered)
-	_description_panel.next_enabled = true
+	__ui.description_panel.next_enabled = true
 
 
 func __next_button_dependency_triggered(task: WaitForSignalTask):
-	_description_panel.next_enabled = false
+	__ui.description_panel.next_enabled = false
 	task.task_completed.disconnect(self.__next_button_dependency_triggered)
 
 

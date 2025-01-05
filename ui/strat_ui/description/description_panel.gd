@@ -2,7 +2,6 @@ class_name DescriptionPanel extends Control
 
 
 @export var _title: Label
-@export var _mechanic_description: RichTextLabel
 @export var _strat_description: RichTextLabel
 
 @export var _next_button: Button
@@ -51,18 +50,20 @@ signal reset_pressed()
 signal explain_pressed()
 
 
-var mechanic_description: String:
-	get: return _mechanic_description.text if _mechanic_description else ""
-	set(value):
-		_mechanic_description.text = value
-		_mechanic_description.visible = not value.is_empty()
+func _init() -> void:
+	next_enabled = false
+	prev_enabled = false
+	start_enabled = false
+	explain_enabled = false
+	strat_description = ""
 
 
 var strat_description: String:
 	get: return _strat_description.text if _strat_description else ""
 	set(value):
-		_strat_description.text = value
-		_strat_description.visible = not value.is_empty()
+		if _strat_description:
+			_strat_description.text = value
+			_strat_description.visible = not value.is_empty()
 
 
 func _ready() -> void:

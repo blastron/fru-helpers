@@ -4,12 +4,12 @@
 [ext_resource type="Script" path="res://p1/tokens/thancred.gd" id="2_u84vd"]
 [ext_resource type="Script" path="res://core/tokens/enemy/hitbox.gd" id="3_m2v7q"]
 
-[node name="thancred" type="Node2D" node_paths=PackedStringArray("_hitbox", "icon")]
+[node name="thancred" type="Node2D" node_paths=PackedStringArray("hitbox", "icon")]
 self_modulate = Color(1, 1, 1, 0.3)
 script = ExtResource("2_u84vd")
 on_stage = false
 hitbox_radius = 75.0
-_hitbox = NodePath("hitbox")
+hitbox = NodePath("hitbox")
 hitbox_angle = -1.571
 icon = NodePath("icon")
 

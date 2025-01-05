@@ -1,6 +1,5 @@
 @tool
-
-class_name Cone extends Indicator
+class_name Cone extends IndicatorShape
 	
 
 @export var _radius: float = 100 :
@@ -16,8 +15,8 @@ class_name Cone extends Indicator
 		_update_points()
 
 
-func _init(radius: float, arc_width: float, color: Color, lifespan: float) -> void:
-	super(color, lifespan)
+func _init(radius: float, arc_width: float, color: Color) -> void:
+	super(color)
 	
 	_radius = radius
 	_arc_width = arc_width

@@ -4,6 +4,9 @@ const _conga_spots: Array[String] = ["conga_1", "conga_2", "conga_3", "conga_4",
 const _tether_tags: Array[String] = ["tether_1", "tether_2", "tether_3", "tether_4"]
 const _bait_tags: Array[String]   = ["bait_1", "bait_2", "bait_3", "bait_4"]
 
+const _tether_animate_in_time: float = 0.2
+const _tether_animate_out_time: float = 0.2
+
 const _fire_color: Color = Color(0.98, 0.75, 0.06)
 const _lightning_color: Color = Color(0.18, 0.92, 0.92)
 
@@ -173,12 +176,14 @@ func _assign_tether(player: PlayerToken, clone: Thancred, tether_type: String, t
 	player.player_data.add_buff(_prey_debuff)
 
 	var color: Color = _fire_color if tether_type == "fire" else _lightning_color
-	create_tether(_tether_tags[tether_number], player, clone, color)
+	var tether: Tether = _arena.add_tether_indicator(_tether_tags[tether_number], player, clone, color)
+	wait_for_fade_in(tether, _tether_animate_in_time)
 
 
 # Clear the given tether and wait for it to animate out.
 func _clear_tether(tether_number: int):
-	destroy_tether(_tether_tags[tether_number])
+	var tether: Tether = _arena.get_indicator(_tether_tags[tether_number])
+	wait_for_fade_out(tether, _tether_animate_out_time)
 	
 	# Find the tethered player and remove their debuff.
 	var player: PlayerToken = find_token_by_tag(_tether_tags[tether_number])
@@ -438,9 +443,15 @@ func _launch_cones(tether_number: int, permanent: bool) -> void:
 		var bait_location: Vector2 = bait.position
 		var rotation: float = origin.angle_to_point(bait_location)
 		
+		# Create the cone indicator and, if it's not permanent, add its fade-out time as a dependency.
 		var cone_name: String = "fof_cone_%d_%d" % [tether_number, bait_index]
-		create_cone(cone_name, origin, rotation, -1, arc_width, color, _cone_duration if not permanent else 0)
+		var cone: Cone = _arena.add_cone_indicator(cone_name, -1, arc_width, color)
+		cone.position = origin
+		cone.rotation = rotation
+		if not permanent:
+			wait_for_fade_out(cone, _cone_duration)
 		
+		# Hit players in the cone.
 		var cone_hits: Array[Token] = filter_in_cone(other_players, origin, rotation, 10000, arc_width)
 		for cone_hit in cone_hits:
 			var hit_player: PlayerToken = cone_hit as PlayerToken
@@ -460,7 +471,10 @@ func _clear_cones(tether_number: int, instant: bool) -> void:
 	var is_fire: bool = target.has_tag("fire")
 	for bait_index in range(1 if is_fire else 3):
 		var cone_name: String = "fof_cone_%d_%d" % [tether_number, bait_index]
-		destroy_cone(cone_name, 0.25 if not instant else 0)
+		var cone: Indicator = _arena.get_indicator(cone_name)
+		if cone:
+			if instant: wait_for_fade_out(cone, 0.25)
+			else: _arena.remove_indicator(cone)
 
 
 func _apply_damage(target: PlayerToken) -> void:

@@ -1,6 +1,5 @@
 @tool
-
-class_name Circle extends Indicator
+class_name Circle extends IndicatorShape
 
 
 @export var _radius: float = 100:
@@ -9,6 +8,7 @@ class_name Circle extends Indicator
 		_radius = value
 		_update_points()
 
+
 # Whether this is an "in" or an "out".
 @export var _invert: bool = false:
 	get: return _background.invert_enabled
@@ -16,8 +16,8 @@ class_name Circle extends Indicator
 		_background.invert_enabled = value
 
 
-func _init(radius: float, invert: bool, color: Color, lifespan: float) -> void:
-	super(color, lifespan)
+func _init(radius: float, invert: bool, color: Color) -> void:
+	super(color)
 
 	_radius = radius
 	_invert = invert

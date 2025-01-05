@@ -1,70 +1,94 @@
 class_name Indicator extends Node2D
 
 
-var _border: Line2D
-var _background: Polygon2D
-
-func _init(color: Color, lifespan: float = 0) -> void:
-	# Create shapes.
-	_background = Polygon2D.new()
-	_background.invert_border = 10000
-	add_child(_background)
-
-	_border = Line2D.new()
-	_border.width = 3
-	_border.closed = true
-	add_child(_border)
-
-	if lifespan > 0:
-		_lifespan = lifespan
-		_remaining_lifespan = lifespan
-		
-	_color = color
-	_update_points()
+signal task_completed(shape: Indicator)
 
 
-# The color of the cone. Alpha value is multiplied based on self._alpha.
-@export var _color: Color:
-	get: return _color
+# Whether or not this indicator is important and should be sorted to the top of the Z-order.
+signal importance_changed(indicator: Indicator)
+var is_important: bool = false:
+	get: return is_important
 	set(value):
-		_color = value
-		_update_colors()
+		if is_important != value:
+			is_important = value
+			importance_changed.emit(self)
+
+
+# Whether this indicator is in a fixed position on the stage or if it's moving. Used to determine z-order.
+func is_static_indicator() -> bool : return true
+
 
 @export var _alpha: float = 1 :
 	get: return _alpha
 	set(value):
 		_alpha = value
-		_update_colors()
+		_update_alpha()
 
-func _update_colors() -> void:
-	_border.default_color = _color
-	_border.default_color.a *= _alpha
 
-	_background.color = _color
-	_background.color.a *= _alpha * 0.5
-
-func _update_points() -> void:
+func _update_alpha() -> void:
 	pass
 
-var _lifespan: float = 0
-var _remaining_lifespan: float = 0
-signal task_completed(shape: Indicator)
+
+var __fade_in_time: float = 0
+var __fade_out_time: float = 0
+var __fade_percentage: float = 1
+
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
-
-	if _lifespan > 0 and _remaining_lifespan > 0:
-		_remaining_lifespan -= delta
-		_alpha = ease(clamp(_remaining_lifespan / _lifespan, 0, 1), 0.3)
-
-		if _remaining_lifespan <= 0:
+		
+	if __fade_in_time > 0:
+		__fade_percentage += delta / __fade_in_time
+		if __fade_percentage >= 1:
+			__fade_in_time = 0
+			__fade_percentage = 1
+		
+			_alpha = 1
+		
+			if __fade_out_time <= 0:
+				# We're only fading in. Emit task completion.
+				task_completed.emit(self)
+			
+		else:
+			_alpha = ease(clamp(__fade_percentage, 0, 1), 0.3)
+	
+	elif __fade_out_time > 0:
+		__fade_percentage -= delta / __fade_out_time
+		if __fade_percentage <= 0:
+			# We've finished fading out. Destroy ourselves.
 			task_completed.emit(self)
-			queue_free()
+		
+			# Try to remove the indicator from the arena it's in, if any.
+			var did_remove_from_arena: bool = false
+			var current_parent: Node = get_parent()
+			while current_parent:
+				if current_parent is Arena:
+					did_remove_from_arena = true
+					current_parent.remove_indicator(self)
+					break
+				else: current_parent = current_parent.get_parent()
+			
+			# The indicator was not in an arena. Destroy it directly.
+			if not did_remove_from_arena: queue_free()
+		else:
+			_alpha = ease(clamp(__fade_percentage, 0, 1), 0.3)
 
-func destroy(fade_time: float) -> void:
-	if fade_time <= 0:
-		queue_free()
-	else:
-		_lifespan = fade_time
-		_remaining_lifespan = fade_time
+
+func fade_in(time: float) -> void:
+	__fade_percentage = 0
+	__fade_in_time = time
+	_alpha = 0
+
+
+func fade_out(time: float) -> void:
+	__fade_percentage = 1
+	__fade_out_time = time
+	_alpha = 1
+	
+
+func fade_in_out(in_time: float, out_time: float) -> void:
+	__fade_percentage = 0
+	__fade_in_time = in_time
+	__fade_out_time = out_time
+	_alpha = 0

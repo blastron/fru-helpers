@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://ch68lq3ju3lml"]
+
+[ext_resource type="Script" path="res://core/arena.gd" id="1_4lhs3"]
+[ext_resource type="Texture2D" uid="uid://d3s7k5dnrb8w7" path="res://p1/p1 ring.png" id="2_u5wmn"]
+[ext_resource type="PackedScene" uid="uid://kiocqomkwe8n" path="res://core/tokens/player/player_token.tscn" id="2_xem3c"]
+
+[node name="P1Arena" type="CanvasLayer" node_paths=PackedStringArray("_root")]
+script = ExtResource("1_4lhs3")
+_root = NodePath("background/arena_floor")
+_player_token_type = ExtResource("2_xem3c")
+
+[node name="background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.270778, 0.21662, 0.199757, 1)
+
+[node name="arena_floor" type="Sprite2D" parent="background"]
+position = Vector2(480, 360)
+texture = ExtResource("2_u5wmn")
