@@ -70,14 +70,6 @@ size_flags_vertical = 3
 theme = ExtResource("1_bly2k")
 theme_override_constants/separation = 10
 
-[node name="mechanic_description" type="RichTextLabel" parent="PanelContainer/VBoxContainer/MarginContainer2/ScrollContainer/text layout"]
-layout_mode = 2
-theme = ExtResource("1_bly2k")
-bbcode_enabled = true
-text = "This is a description of the mechanic. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. [b][u]Ut enim ad minim veniam,[/u][/b] quis nostrud exercitation ullamco laboris nisi."
-fit_content = true
-scroll_active = false
-
 [node name="strat_description" type="RichTextLabel" parent="PanelContainer/VBoxContainer/MarginContainer2/ScrollContainer/text layout"]
 layout_mode = 2
 theme = ExtResource("1_bly2k")

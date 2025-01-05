@@ -7,7 +7,7 @@ const _bait_tags: Array[String]   = ["bait_1", "bait_2", "bait_3", "bait_4"]
 const _tether_animate_in_time: float = 0.2
 const _tether_animate_out_time: float = 0.2
 
-const _fire_color: Color = Color(0.98, 0.75, 0.06)
+const _fire_color: Color = Color(0.99607843, 0.78431374, 0.24313726)
 const _lightning_color: Color = Color(0.18, 0.92, 0.92)
 
 const _fire_cone_arc: float = deg_to_rad(90)
@@ -74,7 +74,7 @@ func _enter_setup(step_id: int, substep_id: int) -> void:
 			var tether_type: String = "fire" if _use_fixed_data() else ["fire", "lightning"].pick_random()
 			var player: PlayerToken = (_pick_tether_player() if not _use_fixed_data()
 				else get_player_token(PlayerData.Role.HEALER, PlayerData.Group.GROUP_TWO))
-			_assign_tether(player, _thancred, tether_type, 0)
+			_assign_tether(player, tether_type, 0)
 			finish_state()
 			
 		Step.TETHER_TWO:
@@ -88,7 +88,7 @@ func _enter_setup(step_id: int, substep_id: int) -> void:
 					var tether_type: String = "lightning" if _use_fixed_data() else ["fire", "lightning"].pick_random()
 					var player: PlayerToken = (_pick_tether_player() if not _use_fixed_data()
 						else get_player_token(PlayerData.Role.RANGED, PlayerData.Group.GROUP_ONE))
-					_assign_tether(player, _clone_1, tether_type, 1)
+					_assign_tether(player, tether_type, 1)
 					finish_state()
 			
 		Step.TETHER_THREE:
@@ -102,7 +102,7 @@ func _enter_setup(step_id: int, substep_id: int) -> void:
 					var tether_type: String = "lightning" if _use_fixed_data() else ["fire", "lightning"].pick_random()
 					var player: PlayerToken = (_pick_tether_player() if not _use_fixed_data()
 						else get_player_token(PlayerData.Role.HEALER, PlayerData.Group.GROUP_ONE))
-					_assign_tether(player, _clone_2, tether_type, 2)
+					_assign_tether(player, tether_type, 2)
 					finish_state()
 			
 		Step.TETHER_FOUR:
@@ -116,7 +116,7 @@ func _enter_setup(step_id: int, substep_id: int) -> void:
 					var tether_type: String = "lightning" if _use_fixed_data() else ["fire", "lightning"].pick_random()
 					var player: PlayerToken = (_pick_tether_player() if not _use_fixed_data()
 						else get_player_token(PlayerData.Role.TANK, PlayerData.Group.GROUP_TWO))
-					_assign_tether(player, _clone_3, tether_type, 3)
+					_assign_tether(player, tether_type, 3)
 					finish_state()
 			
 		Step.MOVE_TO_FIRST_BAITS:
@@ -167,10 +167,22 @@ func _pick_tether_player() -> PlayerToken:
 	return null
 
 
+func _get_clone_for_tether(tether_number: int) -> Thancred:
+	match tether_number:
+		0: return _thancred
+		1: return _clone_1
+		2: return _clone_2
+		3: return _clone_3
+		_: return null
+
+
 # Apply a tether between a player and a specific clone and wait for it to animate in.
-func _assign_tether(player: PlayerToken, clone: Thancred, tether_type: String, tether_number: int) -> void:
+func _assign_tether(player: PlayerToken, tether_type: String, tether_number: int) -> void:
 	player.add_tag(_tether_tags[tether_number])
 	player.add_tag(tether_type)
+
+	var clone: Thancred = _get_clone_for_tether(tether_number)
+	clone.aura = Thancred.Aura.FIRE if tether_type == "fire" else Thancred.Aura.LIGHTNING
 	clone.add_tag(tether_type)
 	
 	player.player_data.add_buff(_prey_debuff)
@@ -188,6 +200,10 @@ func _clear_tether(tether_number: int):
 	# Find the tethered player and remove their debuff.
 	var player: PlayerToken = find_token_by_tag(_tether_tags[tether_number])
 	player.player_data.remove_buff(_prey_debuff)
+	
+	var clone: Thancred = _get_clone_for_tether(tether_number)
+	clone.aura = Thancred.Aura.NONE
+	
 
 
 # Apply bait tags to players who do not have tethers, in conga line order.
@@ -399,7 +415,7 @@ func _resolve_tether(tether_number: int, substep: int) -> void:
 				_remove_vulns()
 				finish_state()
 	else:
-		var clone: Thancred = _clone_1 if tether_number == 1 else _clone_2 if tether_number == 2 else _clone_3
+		var clone: Thancred = _get_clone_for_tether(tether_number)
 		match substep:
 			0:	# Clone dashes in
 				var target: Token = find_token_by_tag(_tether_tags[tether_number])
@@ -593,16 +609,16 @@ func _enter_failure(step_id: int, substep_id: int) -> void:
 		#   we get here, since that happens before they make any choices.
 		if step_id < Step.TETHER_ONE:
 			_thancred.on_stage = true
-			_assign_tether(_pick_tether_player(), _thancred, ["fire", "lightning"].pick_random(), 0)
+			_assign_tether(_pick_tether_player(), ["fire", "lightning"].pick_random(), 0)
 		if step_id < Step.TETHER_TWO:
 			_clone_1.on_stage = true
-			_assign_tether(_pick_tether_player(), _clone_1, ["fire", "lightning"].pick_random(), 1)
+			_assign_tether(_pick_tether_player(), ["fire", "lightning"].pick_random(), 1)
 		if step_id < Step.TETHER_THREE:
 			_clone_2.on_stage = true
-			_assign_tether(_pick_tether_player(), _clone_2, ["fire", "lightning"].pick_random(), 2)
+			_assign_tether(_pick_tether_player(), ["fire", "lightning"].pick_random(), 2)
 		if step_id < Step.TETHER_FOUR:
 			_clone_3.on_stage = true
-			_assign_tether(_pick_tether_player(), _clone_3, ["fire", "lightning"].pick_random(), 3)
+			_assign_tether(_pick_tether_player(), ["fire", "lightning"].pick_random(), 3)
 		if step_id < Step.MOVE_TO_FIRST_BAITS:
 			_assign_bait_order()
 		

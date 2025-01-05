@@ -1,12 +1,16 @@
-[gd_scene load_steps=4 format=3 uid="uid://thw6548celuv"]
+[gd_scene load_steps=6 format=3 uid="uid://thw6548celuv"]
 
 [ext_resource type="Texture2D" uid="uid://ly3g7b2tcax7" path="res://p1/tokens/p1_thancred.png" id="1_w4tiq"]
 [ext_resource type="Script" path="res://p1/tokens/thancred.gd" id="2_u84vd"]
 [ext_resource type="Script" path="res://core/tokens/enemy/hitbox.gd" id="3_m2v7q"]
+[ext_resource type="Texture2D" uid="uid://2i6vlj7ejw7r" path="res://p1/tokens/thancred_fire.png" id="4_3dt20"]
+[ext_resource type="Texture2D" uid="uid://dp773vy58hgqn" path="res://p1/tokens/thancred_lightning.png" id="5_ul5cv"]
 
-[node name="thancred" type="Node2D" node_paths=PackedStringArray("hitbox", "icon")]
+[node name="thancred" type="Node2D" node_paths=PackedStringArray("_fire_aura", "_lightning_aura", "hitbox", "icon")]
 self_modulate = Color(1, 1, 1, 0.3)
 script = ExtResource("2_u84vd")
+_fire_aura = NodePath("fire aura")
+_lightning_aura = NodePath("lightning aura")
 on_stage = false
 hitbox_radius = 75.0
 hitbox = NodePath("hitbox")
@@ -23,3 +27,12 @@ self_modulate = Color(1, 1, 1, 0.3)
 rotation = -1.571
 script = ExtResource("3_m2v7q")
 radius = 75.0
+
+[node name="fire aura" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(2, -7)
+texture = ExtResource("4_3dt20")
+
+[node name="lightning aura" type="Sprite2D" parent="."]
+position = Vector2(0, -6)
+texture = ExtResource("5_ul5cv")

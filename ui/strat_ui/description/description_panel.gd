@@ -73,6 +73,8 @@ func _ready() -> void:
 	if _reset_button: _reset_button.pressed.connect(func(): reset_pressed.emit())
 	if _explain_button: _explain_button.pressed.connect(func(): explain_pressed.emit())
 	if _menu_button: _menu_button.pressed.connect(self._menu_button_pressed)
+	
+	strat_description = ""
 
 
 func _menu_button_pressed():
