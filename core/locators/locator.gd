@@ -19,6 +19,7 @@ var state: State = State.DISABLED:
 		if _button:
 			_button.visible = state == State.ENABLED or (state == State.DISABLED and show_when_inactive)
 			_button.disabled = state != State.ENABLED
+			_button.mouse_default_cursor_shape = CURSOR_POINTING_HAND if state == State.ENABLED else CURSOR_ARROW
 			
 		if _correct_icon: _correct_icon.visible = state == State.CORRECT
 		if _incorrect_icon: _incorrect_icon.visible = state == State.INCORRECT
