@@ -1,0 +1,16 @@
+[remap]
+
+importer="bitmap"
+type="BitMap"
+uid="uid://3cvf0tdljkjo"
+path="res://.godot/imported/kai button mask.bmp-f36cda369f9f448580327c0738b8fb13.res"
+
+[deps]
+
+source_file="res://main/kai button mask.bmp"
+dest_files=["res://.godot/imported/kai button mask.bmp-f36cda369f9f448580327c0738b8fb13.res"]
+
+[params]
+
+create_from=0
+threshold=0.5
