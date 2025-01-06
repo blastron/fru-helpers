@@ -42,6 +42,8 @@ _ruin_debuff = SubResource("Resource_m5kkb")
 _mvuln_debuff = SubResource("Resource_f71fd")
 __ui = NodePath("StratUi")
 _arena = NodePath("P1Arena")
+_title_key = "P1_FOF_TITLE"
+_subtitle_key = "P1_FOF_SUBTITLE_FUSSLESS"
 
 [node name="P1Arena" parent="." instance=ExtResource("8_abuj6")]
 

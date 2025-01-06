@@ -6,6 +6,10 @@ class_name Strat extends ScriptedSequence
 @export var _arena: Arena
 
 
+@export var _title_key: String
+@export var _subtitle_key: String
+
+
 var player_tokens: Array[PlayerToken]
 var user_token: PlayerToken = null
 
@@ -45,6 +49,9 @@ func _ready() -> void:
 	
 	# Bind to signals from the description pane.
 	if __ui:
+		__ui.description_panel.title = tr(_title_key) if _title_key else "Untitled Strat"
+		__ui.description_panel.subtitle = tr(_subtitle_key) if _subtitle_key else ""
+		
 		# Bind to navigation events.
 		__ui.description_panel.next_pressed.connect(self._nav_next)
 		__ui.description_panel.prev_pressed.connect(self._nav_prev)

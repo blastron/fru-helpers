@@ -3,13 +3,15 @@
 [ext_resource type="Theme" uid="uid://iyl3cwffycsv" path="res://ui/strat_ui/description/description.tres" id="1_bly2k"]
 [ext_resource type="Script" path="res://ui/strat_ui/description/description_panel.gd" id="2_ctigi"]
 
-[node name="description" type="HBoxContainer" node_paths=PackedStringArray("_title", "_strat_description", "_next_button", "_prev_button", "_start_button", "_reset_button", "_explain_button", "_menu_button")]
+[node name="description" type="HBoxContainer" node_paths=PackedStringArray("_title", "_subtitle", "_subtitle_container", "_strat_description", "_next_button", "_prev_button", "_start_button", "_reset_button", "_explain_button", "_menu_button")]
 offset_right = 408.0
 offset_bottom = 146.0
 theme = ExtResource("1_bly2k")
 theme_override_constants/separation = 8
 script = ExtResource("2_ctigi")
 _title = NodePath("PanelContainer/VBoxContainer/MarginContainer/title")
+_subtitle = NodePath("PanelContainer/VBoxContainer/subtitle_container/subtitle")
+_subtitle_container = NodePath("PanelContainer/VBoxContainer/subtitle_container")
 _strat_description = NodePath("PanelContainer/VBoxContainer/MarginContainer2/ScrollContainer/text layout/strat_description")
 _next_button = NodePath("PanelContainer/VBoxContainer/buttons/back_next/next_button")
 _prev_button = NodePath("PanelContainer/VBoxContainer/buttons/back_next/prev_button")
@@ -52,6 +54,18 @@ size_flags_vertical = 1
 text = "strat title"
 horizontal_alignment = 1
 
+[node name="subtitle_container" type="MarginContainer" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_top = 10
+
+[node name="subtitle" type="Label" parent="PanelContainer/VBoxContainer/subtitle_container"]
+layout_mode = 2
+size_flags_vertical = 1
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "subtitle"
+horizontal_alignment = 1
+
 [node name="MarginContainer2" type="MarginContainer" parent="PanelContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -59,6 +73,7 @@ theme_override_constants/margin_top = 4
 theme_override_constants/margin_bottom = 6
 
 [node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/VBoxContainer/MarginContainer2"]
+custom_minimum_size = Vector2(0, 250)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
@@ -131,4 +146,4 @@ layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
 theme = ExtResource("1_bly2k")
-text = "START"
+text = "PRACTICE"

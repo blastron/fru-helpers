@@ -2,6 +2,8 @@ class_name DescriptionPanel extends Control
 
 
 @export var _title: Label
+@export var _subtitle: Label
+@export var _subtitle_container: Container
 @export var _strat_description: RichTextLabel
 
 @export var _next_button: Button
@@ -56,6 +58,18 @@ func _init() -> void:
 	start_enabled = false
 	explain_enabled = false
 	strat_description = ""
+
+
+var title: String:
+	get: return _title.text if _title else ""
+	set(value): if _title: _title.text = value
+
+
+var subtitle: String:
+	get: return _subtitle.text if _subtitle else ""
+	set(value):
+		if _subtitle: _subtitle.text = value
+		if _subtitle_container: _subtitle_container.visible = not value.is_empty()
 
 
 var strat_description: String:
