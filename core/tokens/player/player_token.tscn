@@ -1,34 +1,33 @@
-[gd_scene load_steps=12 format=3 uid="uid://kiocqomkwe8n"]
+[gd_scene load_steps=10 format=3 uid="uid://kiocqomkwe8n"]
 
 [ext_resource type="Script" path="res://core/tokens/player/player_token.gd" id="1_6gl54"]
-[ext_resource type="Texture2D" uid="uid://b3x81hn5v0x5" path="res://core/tokens/player/player_t1.png" id="2_n0ghk"]
-[ext_resource type="Texture2D" uid="uid://clf0tmy5dvdr1" path="res://core/tokens/player/player_t2.png" id="3_8tmq6"]
-[ext_resource type="Texture2D" uid="uid://dvkc2unhgiekr" path="res://core/tokens/player/player_h1.png" id="4_tforj"]
-[ext_resource type="Texture2D" uid="uid://bo2njorvimkos" path="res://core/tokens/player/player_h2.png" id="5_u62p5"]
-[ext_resource type="Texture2D" uid="uid://dybjjp4pjyyot" path="res://core/tokens/player/player_m1.png" id="6_uho10"]
-[ext_resource type="Texture2D" uid="uid://dnib6roddsask" path="res://core/tokens/player/player_m2.png" id="7_te8q7"]
-[ext_resource type="Texture2D" uid="uid://c7xyenafi4s4l" path="res://core/tokens/player/player_r1.png" id="8_lpqul"]
-[ext_resource type="Texture2D" uid="uid://bdps5r6f2exmr" path="res://core/tokens/player/player_r2.png" id="9_87yvu"]
-[ext_resource type="Texture2D" uid="uid://fxlgp50xad7x" path="res://core/tokens/player/player_generic.png" id="10_vscjq"]
-[ext_resource type="Texture2D" uid="uid://cjbdceg33bgk" path="res://core/tokens/player/player_highlight.png" id="11_putux"]
+[ext_resource type="Texture2D" uid="uid://rq2dmwolrhvw" path="res://ui/players/roles/t1.png" id="2_8d2q0"]
+[ext_resource type="Texture2D" uid="uid://qmgem80rq6w7" path="res://ui/players/roles/t2.png" id="3_22q0n"]
+[ext_resource type="Texture2D" uid="uid://mavhdki1im5i" path="res://ui/players/roles/h1.png" id="4_ft8g8"]
+[ext_resource type="Texture2D" uid="uid://cf103pahwq70t" path="res://ui/players/roles/h2.png" id="5_dge54"]
+[ext_resource type="Texture2D" uid="uid://bfctbc86oml4b" path="res://ui/players/roles/m1.png" id="6_epynl"]
+[ext_resource type="Texture2D" uid="uid://snn8ph4b1n23" path="res://ui/players/roles/m2.png" id="7_rybwt"]
+[ext_resource type="Texture2D" uid="uid://csl7433yh6kjl" path="res://ui/players/roles/r1.png" id="8_3hbeh"]
+[ext_resource type="Texture2D" uid="uid://cvd5j5lotybvm" path="res://ui/players/roles/r2.png" id="9_nlgs8"]
 
-[node name="PlayerToken" type="Node2D" node_paths=PackedStringArray("_highlight", "icon")]
+[node name="player_T1" type="Node2D" node_paths=PackedStringArray("_background_container", "icon")]
 script = ExtResource("1_6gl54")
-_highlight = NodePath("highlight")
-icon_job_t1 = ExtResource("2_n0ghk")
-icon_job_t2 = ExtResource("3_8tmq6")
-icon_job_h1 = ExtResource("4_tforj")
-icon_job_h2 = ExtResource("5_u62p5")
-icon_job_m1 = ExtResource("6_uho10")
-icon_job_m2 = ExtResource("7_te8q7")
-icon_job_r1 = ExtResource("8_lpqul")
-icon_job_r2 = ExtResource("9_87yvu")
-icon_job_unknown = ExtResource("10_vscjq")
+_background_container = NodePath("background")
+_radius = 20.0
+_editor_role = 1
+_icon_role_t1 = ExtResource("2_8d2q0")
+_icon_role_t2 = ExtResource("3_22q0n")
+_icon_role_h1 = ExtResource("4_ft8g8")
+_icon_role_h2 = ExtResource("5_dge54")
+_icon_role_m1 = ExtResource("6_epynl")
+_icon_role_m2 = ExtResource("7_rybwt")
+_icon_role_r1 = ExtResource("8_3hbeh")
+_icon_role_r2 = ExtResource("9_nlgs8")
 icon = NodePath("icon")
 
-[node name="icon" type="Sprite2D" parent="."]
-texture = ExtResource("10_vscjq")
+[node name="background" type="Node2D" parent="."]
 
-[node name="highlight" type="Sprite2D" parent="."]
-visible = false
-texture = ExtResource("11_putux")
+[node name="icon" type="Sprite2D" parent="."]
+self_modulate = Color(1, 0.79, 0.31, 1)
+scale = Vector2(0.21, 0.21)
+texture = ExtResource("2_8d2q0")

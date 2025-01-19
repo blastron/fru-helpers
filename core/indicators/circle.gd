@@ -32,7 +32,7 @@ func _update_points() -> void:
 	
 	# Determine the number of segments needed to smoothly draw the circle and the width of each segment.
 	var circumference: float = 2 * PI * _radius
-	var num_segments: int = min(16, ceil(circumference / 5.0))
+	var num_segments: int = max(16, ceil(circumference / 5.0))
 	var segment_arc_width: float = 2 * PI / num_segments
 
 	# Build the list of points.
