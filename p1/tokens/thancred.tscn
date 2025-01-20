@@ -19,6 +19,8 @@ icon = NodePath("icon")
 
 [node name="icon" type="Sprite2D" parent="."]
 self_modulate = Color(1, 1, 1, 0.3)
+position = Vector2(-1, -5)
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("1_w4tiq")
 offset = Vector2(2, -6)
 
@@ -30,9 +32,12 @@ radius = 75.0
 
 [node name="fire aura" type="Sprite2D" parent="."]
 visible = false
-position = Vector2(2, -7)
+position = Vector2(-1, -9)
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("4_3dt20")
 
 [node name="lightning aura" type="Sprite2D" parent="."]
-position = Vector2(0, -6)
+visible = false
+position = Vector2(-1, -7)
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("5_ul5cv")
