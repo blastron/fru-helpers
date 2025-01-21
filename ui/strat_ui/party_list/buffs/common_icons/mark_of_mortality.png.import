@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d2ccenfxq8bv3"
-path="res://.godot/imported/ruin_ddown.png-0944240a47ba6c6e55d5e5ae863bd45a.ctex"
+uid="uid://dvg3qlxadc15y"
+path="res://.godot/imported/mark_of_mortality.png-9e8f896b1c7fcf34fc97fab0e587a16b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ui/strat_ui/party_list/buffs/common_icons/ruin_ddown.png"
-dest_files=["res://.godot/imported/ruin_ddown.png-0944240a47ba6c6e55d5e5ae863bd45a.ctex"]
+source_file="res://ui/strat_ui/party_list/buffs/common_icons/mark_of_mortality.png"
+dest_files=["res://.godot/imported/mark_of_mortality.png-9e8f896b1c7fcf34fc97fab0e587a16b.ctex"]
 
 [params]
 

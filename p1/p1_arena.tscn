@@ -6,7 +6,7 @@
 
 [node name="P1Arena" type="CanvasLayer" node_paths=PackedStringArray("_root")]
 script = ExtResource("1_4lhs3")
-_root = NodePath("")
+_root = NodePath("background")
 _player_token_type = ExtResource("2_xem3c")
 
 [node name="background" type="ColorRect" parent="."]
@@ -24,6 +24,3 @@ texture = ExtResource("2_u5wmn")
 
 [node name="arena_floor" type="Node2D" parent="background"]
 position = Vector2(480, 360)
-
-[node name="player_T1" parent="background" instance=ExtResource("2_xem3c")]
-position = Vector2(384, 449)

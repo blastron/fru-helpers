@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://p1/fof/fof.gd" id="1_r0yxp"]
 [ext_resource type="Texture2D" uid="uid://mp6ei6jsyiw0" path="res://ui/strat_ui/party_list/buffs/common_icons/prey.png" id="2_tsevi"]
 [ext_resource type="Script" path="res://core/buffs/buff_data.gd" id="3_2oohq"]
-[ext_resource type="Texture2D" uid="uid://d2ccenfxq8bv3" path="res://ui/strat_ui/party_list/buffs/common_icons/ruin_ddown.png" id="4_0qiq2"]
+[ext_resource type="Texture2D" uid="uid://dvg3qlxadc15y" path="res://ui/strat_ui/party_list/buffs/common_icons/mark_of_mortality.png" id="4_atdse"]
 [ext_resource type="PackedScene" uid="uid://thw6548celuv" path="res://p1/tokens/thancred.tscn" id="4_ejpbr"]
 [ext_resource type="Texture2D" uid="uid://cyqs48e0js1fb" path="res://ui/strat_ui/party_list/buffs/common_icons/magic_vuln.png" id="5_bp7kr"]
 [ext_resource type="PackedScene" uid="uid://dwfl3kiyj4lvj" path="res://core/locators/locator.tscn" id="5_txyax"]
@@ -16,7 +16,7 @@ icon = ExtResource("2_tsevi")
 
 [sub_resource type="Resource" id="Resource_m5kkb"]
 script = ExtResource("3_2oohq")
-icon = ExtResource("4_0qiq2")
+icon = ExtResource("4_atdse")
 
 [sub_resource type="Resource" id="Resource_f71fd"]
 script = ExtResource("3_2oohq")

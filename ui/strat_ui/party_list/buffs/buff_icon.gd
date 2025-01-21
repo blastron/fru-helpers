@@ -1,6 +1,7 @@
-class_name BuffIcon extends TextureRect
+class_name BuffIcon extends Control
 
 
+@export var _icon: TextureRect
 @export var _stack_label: Label
 @export var _duration_label: Label
 
@@ -13,7 +14,7 @@ var data: BuffData:
 		if value == null or data != null: return
 
 		data = value
-		texture = data.icon if data.icon else null
+		#texture = data.icon if data.icon else null
 
 
 var instance: BuffInstance:
