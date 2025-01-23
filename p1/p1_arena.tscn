@@ -6,7 +6,7 @@
 
 [node name="P1Arena" type="CanvasLayer" node_paths=PackedStringArray("_root")]
 script = ExtResource("1_4lhs3")
-_root = NodePath("background")
+_root = NodePath("background/arena_floor")
 _player_token_type = ExtResource("2_xem3c")
 
 [node name="background" type="ColorRect" parent="."]
