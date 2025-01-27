@@ -24,16 +24,34 @@ texture = ExtResource("2_c7xrd")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 19.0
-offset_top = 364.0
-offset_right = -1047.0
-offset_bottom = -314.0
+offset_left = 21.0
+offset_top = 276.0
+offset_right = -1045.0
+offset_bottom = -402.0
 grow_horizontal = 2
 grow_vertical = 2
 rotation = 0.0428097
 focus_mode = 0
 mouse_default_cursor_shape = 2
 text = "fall of faith"
+
+[node name="p3" type="Node" parent="."]
+
+[node name="p3 - ultimate relativity" type="Button" parent="p3"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 535.0
+offset_top = 333.0
+offset_right = -531.0
+offset_bottom = -329.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = -0.0531765
+focus_mode = 0
+mouse_default_cursor_shape = 2
+text = "ultimate
+relativity"
 
 [node name="settings button" type="Button" parent="."]
 anchors_preset = 15

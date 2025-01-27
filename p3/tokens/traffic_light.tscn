@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3 uid="uid://dosp3ijhc5y2a"]
+
+[ext_resource type="Script" path="res://p3/tokens/traffic_light.gd" id="1_disnq"]
+[ext_resource type="Texture2D" uid="uid://0u3f4mrtqqk4" path="res://p3/tokens/traffic_light.png" id="2_6s6ng"]
+[ext_resource type="Script" path="res://core/tokens/enemy/hitbox.gd" id="3_wi2w4"]
+[ext_resource type="Script" path="res://core/indicators/spinner.gd" id="4_wn3h7"]
+
+[node name="TrafficLight" type="Node2D" node_paths=PackedStringArray("_spinner", "hitbox", "icon")]
+script = ExtResource("1_disnq")
+_spinner = NodePath("Spinner")
+hitbox_radius = 75.0
+hitbox = NodePath("hitbox")
+show_hitbox = false
+hitbox_angle = -1.571
+icon = NodePath("icon")
+
+[node name="icon" type="Sprite2D" parent="."]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_6s6ng")
+
+[node name="hitbox" type="Node2D" parent="."]
+visible = false
+self_modulate = Color(1, 1, 1, 0.3)
+rotation = -1.571
+script = ExtResource("3_wi2w4")
+radius = 75.0
+
+[node name="Spinner" type="Node2D" parent="."]
+script = ExtResource("4_wn3h7")
+radius = 40.0
+_alpha = 0.0

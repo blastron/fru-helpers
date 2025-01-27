@@ -148,10 +148,10 @@ func approach_position(target_location: Vector2, radius_override: float = -1, sp
 
 @export var hitbox_angle: float = -PI / 2:
 	get:
-		return hitbox.rotation if hitbox != null else 0.0
+		return wrapf(hitbox.rotation + rotation, -PI, PI) if hitbox != null else 0.0
 	set(value):
 		if hitbox != null:
-			hitbox.rotation = wrapf(value, -PI, PI)
+			hitbox.rotation = wrapf(value - rotation, -PI, PI)
 
 
 const _spin_rate: float = PI * 6

@@ -1,0 +1,36 @@
+[gd_scene load_steps=3 format=3 uid="uid://bt3oigrplb104"]
+
+[ext_resource type="Script" path="res://p3/ultimate_relativity/ur_locator_group.gd" id="1_5mo2d"]
+[ext_resource type="PackedScene" uid="uid://dwfl3kiyj4lvj" path="res://core/locators/locator.tscn" id="2_mm3ai"]
+
+[node name="group" type="Node2D" node_paths=PackedStringArray("fire_bait", "cw_line_bait", "ccw_line_bait", "eruption_bait", "center_bait")]
+script = ExtResource("1_5mo2d")
+fire_bait = NodePath("fire")
+cw_line_bait = NodePath("cw bait")
+ccw_line_bait = NodePath("ccw bait")
+eruption_bait = NodePath("eruption")
+center_bait = NodePath("center")
+
+[node name="fire" parent="." instance=ExtResource("2_mm3ai")]
+offset_top = -278.0
+offset_bottom = -277.0
+
+[node name="center" parent="." instance=ExtResource("2_mm3ai")]
+offset_top = -26.0
+offset_bottom = -25.0
+
+[node name="eruption" parent="." instance=ExtResource("2_mm3ai")]
+offset_top = -121.0
+offset_bottom = -120.0
+
+[node name="ccw bait" parent="." instance=ExtResource("2_mm3ai")]
+offset_left = 23.0
+offset_top = -149.0
+offset_right = 24.0
+offset_bottom = -148.0
+
+[node name="cw bait" parent="." instance=ExtResource("2_mm3ai")]
+offset_left = -23.0
+offset_top = -149.0
+offset_right = -22.0
+offset_bottom = -148.0

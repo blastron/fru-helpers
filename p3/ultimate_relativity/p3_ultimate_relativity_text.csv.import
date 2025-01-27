@@ -1,0 +1,17 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://btatkyrn4qh1f"
+
+[deps]
+
+files=["res://p3/ultimate_relativity/p3_ultimate_relativity_text.en.translation"]
+
+source_file="res://p3/ultimate_relativity/p3_ultimate_relativity_text.csv"
+dest_files=["res://p3/ultimate_relativity/p3_ultimate_relativity_text.en.translation"]
+
+[params]
+
+compress=true
+delimiter=0

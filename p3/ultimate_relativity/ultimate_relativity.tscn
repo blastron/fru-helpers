@@ -1,0 +1,208 @@
+[gd_scene load_steps=25 format=3 uid="uid://briil0t0wviti"]
+
+[ext_resource type="Script" path="res://p3/ultimate_relativity/ultimate_relativity.gd" id="1_31qat"]
+[ext_resource type="PackedScene" uid="uid://7ip36kb2gmya" path="res://p3/ultimate_relativity/p3_arena_ultimate_relativity.tscn" id="2_1rsxp"]
+[ext_resource type="Texture2D" uid="uid://d4nd4hohwucnb" path="res://ui/strat_ui/party_list/buffs/p3/sw_blizzard.png" id="2_76apy"]
+[ext_resource type="PackedScene" uid="uid://dosp3ijhc5y2a" path="res://p3/tokens/traffic_light.tscn" id="3_4kyqg"]
+[ext_resource type="Script" path="res://core/buffs/buff_data.gd" id="3_32blx"]
+[ext_resource type="PackedScene" uid="uid://dik1njrfehd1s" path="res://ui/strat_ui/strat_ui.tscn" id="3_k8ndh"]
+[ext_resource type="Texture2D" uid="uid://bly4xlhynlpx2" path="res://ui/strat_ui/party_list/buffs/p3/sw_darkness.png" id="4_7fxb6"]
+[ext_resource type="PackedScene" uid="uid://bt3oigrplb104" path="res://p3/ultimate_relativity/ur_locator_group.tscn" id="4_8esk7"]
+[ext_resource type="PackedScene" uid="uid://dwfl3kiyj4lvj" path="res://core/locators/locator.tscn" id="5_0gqd6"]
+[ext_resource type="Texture2D" uid="uid://js847nprxa6s" path="res://ui/strat_ui/party_list/buffs/p3/sw_eruption.png" id="5_otpjm"]
+[ext_resource type="Texture2D" uid="uid://dya6m8n7wj5sl" path="res://ui/strat_ui/party_list/buffs/p3/sw_fire.png" id="6_fcuax"]
+[ext_resource type="Texture2D" uid="uid://c0oyv34lsedyn" path="res://ui/strat_ui/party_list/buffs/p3/sw_return.png" id="7_1oojx"]
+[ext_resource type="Texture2D" uid="uid://hpk1xskw6sjm" path="res://ui/strat_ui/party_list/buffs/p3/return.png" id="8_6wtsi"]
+[ext_resource type="Texture2D" uid="uid://n8vxb5k1r2lh" path="res://ui/strat_ui/party_list/buffs/p3/sw_shadoweye.png" id="9_6dq88"]
+[ext_resource type="Texture2D" uid="uid://dmiw5d4hudcgi" path="res://ui/strat_ui/party_list/buffs/p3/sw_water.png" id="10_lg3ec"]
+[ext_resource type="Script" path="res://core/tokens/token.gd" id="15_aqwif"]
+
+[sub_resource type="Resource" id="Resource_7jp3x"]
+script = ExtResource("3_32blx")
+icon = ExtResource("2_76apy")
+
+[sub_resource type="Resource" id="Resource_e5h2s"]
+script = ExtResource("3_32blx")
+icon = ExtResource("4_7fxb6")
+
+[sub_resource type="Resource" id="Resource_54y07"]
+script = ExtResource("3_32blx")
+icon = ExtResource("5_otpjm")
+
+[sub_resource type="Resource" id="Resource_7t7am"]
+script = ExtResource("3_32blx")
+icon = ExtResource("6_fcuax")
+
+[sub_resource type="Resource" id="Resource_i0qvp"]
+script = ExtResource("3_32blx")
+icon = ExtResource("8_6wtsi")
+
+[sub_resource type="Resource" id="Resource_jeqxu"]
+script = ExtResource("3_32blx")
+icon = ExtResource("7_1oojx")
+
+[sub_resource type="Resource" id="Resource_osbfp"]
+script = ExtResource("3_32blx")
+icon = ExtResource("9_6dq88")
+
+[sub_resource type="Resource" id="Resource_ufv6e"]
+script = ExtResource("3_32blx")
+icon = ExtResource("10_lg3ec")
+
+[node name="UltimateRelativity" type="Node2D" node_paths=PackedStringArray("traffic_lights", "tether_anchor", "setup_north", "setup_south", "locator_groups", "locator_center", "__ui", "_arena")]
+script = ExtResource("1_31qat")
+traffic_lights = [NodePath("P3Arena/background/token root/traffic lights/north"), NodePath("P3Arena/background/token root/traffic lights/northeast"), NodePath("P3Arena/background/token root/traffic lights/east"), NodePath("P3Arena/background/token root/traffic lights/southeast"), NodePath("P3Arena/background/token root/traffic lights/south"), NodePath("P3Arena/background/token root/traffic lights/southwest"), NodePath("P3Arena/background/token root/traffic lights/west"), NodePath("P3Arena/background/token root/traffic lights/northwest")]
+tether_anchor = NodePath("P3Arena/background/token root/tether anchor")
+setup_north = [NodePath("P3Arena/background/token root/setup locators/setup north 1"), NodePath("P3Arena/background/token root/setup locators/setup north 2"), NodePath("P3Arena/background/token root/setup locators/setup north 3"), NodePath("P3Arena/background/token root/setup locators/setup north 4")]
+setup_south = [NodePath("P3Arena/background/token root/setup locators/setup south 1"), NodePath("P3Arena/background/token root/setup locators/setup south 2"), NodePath("P3Arena/background/token root/setup locators/setup south 3"), NodePath("P3Arena/background/token root/setup locators/setup south 4")]
+locator_groups = [NodePath("P3Arena/background/token root/locator groups/north"), NodePath("P3Arena/background/token root/locator groups/northeast"), NodePath("P3Arena/background/token root/locator groups/east"), NodePath("P3Arena/background/token root/locator groups/southeast"), NodePath("P3Arena/background/token root/locator groups/south"), NodePath("P3Arena/background/token root/locator groups/southwest"), NodePath("P3Arena/background/token root/locator groups/west"), NodePath("P3Arena/background/token root/locator groups/northwest")]
+locator_center = NodePath("P3Arena/background/token root/center locator")
+_debuff_blizzard = SubResource("Resource_7jp3x")
+_debuff_darkness = SubResource("Resource_e5h2s")
+_debuff_eruption = SubResource("Resource_54y07")
+_debuff_fire = SubResource("Resource_7t7am")
+_debuff_return = SubResource("Resource_i0qvp")
+_debuff_return_waiting = SubResource("Resource_jeqxu")
+_debuff_shadoweye = SubResource("Resource_osbfp")
+_debuff_water = SubResource("Resource_ufv6e")
+__ui = NodePath("StratUi")
+_arena = NodePath("P3Arena")
+_title_key = "P3_UR_TITLE"
+
+[node name="P3Arena" parent="." instance=ExtResource("2_1rsxp")]
+
+[node name="traffic lights" type="Node2D" parent="P3Arena/background/token root" index="0"]
+
+[node name="north" parent="P3Arena/background/token root/traffic lights" instance=ExtResource("3_4kyqg")]
+position = Vector2(0, -140)
+hitbox_radius = 30.0
+hitbox_angle = 0.0
+
+[node name="northeast" parent="P3Arena/background/token root/traffic lights" instance=ExtResource("3_4kyqg")]
+position = Vector2(99, -99)
+rotation = 0.785398
+hitbox_radius = 30.0
+hitbox_angle = 0.785398
+
+[node name="east" parent="P3Arena/background/token root/traffic lights" instance=ExtResource("3_4kyqg")]
+position = Vector2(140, 0)
+rotation = 1.5708
+hitbox_radius = 30.0
+hitbox_angle = 1.5708
+
+[node name="southeast" parent="P3Arena/background/token root/traffic lights" instance=ExtResource("3_4kyqg")]
+position = Vector2(99, 99)
+rotation = -0.785398
+hitbox_radius = 30.0
+hitbox_angle = -0.785398
+
+[node name="south" parent="P3Arena/background/token root/traffic lights" instance=ExtResource("3_4kyqg")]
+position = Vector2(0, 140)
+hitbox_radius = 30.0
+hitbox_angle = 0.0
+
+[node name="southwest" parent="P3Arena/background/token root/traffic lights" instance=ExtResource("3_4kyqg")]
+position = Vector2(-99, 99)
+rotation = 0.785398
+hitbox_radius = 30.0
+hitbox_angle = 0.785398
+
+[node name="west" parent="P3Arena/background/token root/traffic lights" instance=ExtResource("3_4kyqg")]
+position = Vector2(-140, 0)
+rotation = 1.5708
+hitbox_radius = 30.0
+hitbox_angle = 1.5708
+
+[node name="northwest" parent="P3Arena/background/token root/traffic lights" instance=ExtResource("3_4kyqg")]
+position = Vector2(-99, -99)
+rotation = -0.785398
+hitbox_radius = 30.0
+hitbox_angle = -0.785398
+
+[node name="locator groups" type="Node2D" parent="P3Arena/background/token root" index="1"]
+
+[node name="north" parent="P3Arena/background/token root/locator groups" instance=ExtResource("4_8esk7")]
+
+[node name="northeast" parent="P3Arena/background/token root/locator groups" instance=ExtResource("4_8esk7")]
+rotation = 0.785398
+
+[node name="east" parent="P3Arena/background/token root/locator groups" instance=ExtResource("4_8esk7")]
+rotation = 1.5708
+
+[node name="southeast" parent="P3Arena/background/token root/locator groups" instance=ExtResource("4_8esk7")]
+rotation = 2.35619
+
+[node name="south" parent="P3Arena/background/token root/locator groups" instance=ExtResource("4_8esk7")]
+rotation = 3.14159
+
+[node name="southwest" parent="P3Arena/background/token root/locator groups" instance=ExtResource("4_8esk7")]
+rotation = 3.92699
+
+[node name="west" parent="P3Arena/background/token root/locator groups" instance=ExtResource("4_8esk7")]
+rotation = 4.71239
+
+[node name="northwest" parent="P3Arena/background/token root/locator groups" instance=ExtResource("4_8esk7")]
+rotation = 5.49779
+
+[node name="setup locators" type="Node2D" parent="P3Arena/background/token root" index="2"]
+visible = false
+
+[node name="setup north 1" parent="P3Arena/background/token root/setup locators" instance=ExtResource("5_0gqd6")]
+offset_left = -90.0
+offset_top = -50.0
+offset_right = -89.0
+offset_bottom = -49.0
+
+[node name="setup north 2" parent="P3Arena/background/token root/setup locators" instance=ExtResource("5_0gqd6")]
+offset_left = -30.0
+offset_top = -70.0
+offset_right = -29.0
+offset_bottom = -69.0
+
+[node name="setup north 3" parent="P3Arena/background/token root/setup locators" instance=ExtResource("5_0gqd6")]
+offset_left = 30.0
+offset_top = -70.0
+offset_right = 31.0
+offset_bottom = -69.0
+
+[node name="setup north 4" parent="P3Arena/background/token root/setup locators" instance=ExtResource("5_0gqd6")]
+offset_left = 90.0
+offset_top = -50.0
+offset_right = 91.0
+offset_bottom = -49.0
+
+[node name="setup south 1" parent="P3Arena/background/token root/setup locators" instance=ExtResource("5_0gqd6")]
+offset_left = -90.0
+offset_top = 50.0
+offset_right = -89.0
+offset_bottom = 51.0
+
+[node name="setup south 2" parent="P3Arena/background/token root/setup locators" instance=ExtResource("5_0gqd6")]
+offset_left = -30.0
+offset_top = 70.0
+offset_right = -29.0
+offset_bottom = 71.0
+
+[node name="setup south 3" parent="P3Arena/background/token root/setup locators" instance=ExtResource("5_0gqd6")]
+offset_left = 30.0
+offset_top = 70.0
+offset_right = 31.0
+offset_bottom = 71.0
+
+[node name="setup south 4" parent="P3Arena/background/token root/setup locators" instance=ExtResource("5_0gqd6")]
+offset_left = 90.0
+offset_top = 50.0
+offset_right = 91.0
+offset_bottom = 51.0
+
+[node name="center locator" parent="P3Arena/background/token root" index="3" instance=ExtResource("5_0gqd6")]
+
+[node name="tether anchor" type="Node2D" parent="P3Arena/background/token root" index="4"]
+script = ExtResource("15_aqwif")
+
+[node name="Node2D" type="Node2D" parent="P3Arena/background/token root" index="5"]
+position = Vector2(201, 0)
+
+[node name="StratUi" parent="." instance=ExtResource("3_k8ndh")]
+
+[editable path="P3Arena"]

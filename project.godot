@@ -42,7 +42,7 @@ theme/custom="res://ui/project.tres"
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://p1/fof/p1_fof_text.en.translation", "res://ui/common_ui_text.en.translation")
+locale/translations=PackedStringArray("res://p1/fof/p1_fof_text.en.translation", "res://ui/common_ui_text.en.translation", "res://p3/ultimate_relativity/p3_ultimate_relativity_text.en.translation")
 
 [rendering]
 

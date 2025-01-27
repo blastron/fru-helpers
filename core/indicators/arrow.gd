@@ -15,12 +15,22 @@ var _head_background: Line2D
 	set(value):
 		_line_foreground.default_color = value
 		_head_foreground.default_color = value
+		_update_alpha()
+
 
 @export var border_color: Color:
 	get: return _line_background.default_color
 	set(value):
 		_line_background.default_color = value
 		_head_background.default_color = value
+		_update_alpha()
+
+
+@export var alpha: float = 1:
+	get: return alpha
+	set(value):
+		alpha = value
+		_update_alpha()
 
 
 @export var width: float:
@@ -31,6 +41,7 @@ var _head_background: Line2D
 		_head_foreground.width = value
 		_line_background.width = value + cached_border_width
 		_head_background.width = value + cached_border_width
+
 
 @export var border_width: float:
 	get: return (_line_background.width - _line_foreground.width) / 2
@@ -100,3 +111,11 @@ func _update_head() -> void:
 	
 	_head_foreground.set_points(head_points)
 	_head_background.set_points(head_points)
+
+	
+func _update_alpha():
+	_line_foreground.default_color.a = alpha
+	_head_foreground.default_color.a = alpha
+
+	_line_background.default_color.a = alpha
+	_head_background.default_color.a = alpha

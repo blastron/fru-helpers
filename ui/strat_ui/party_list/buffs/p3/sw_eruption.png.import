@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bd52rs24resx0"
-path="res://.godot/imported/p3_arena_ultimate_relativity.png-34880fac30c6794fc35951d098cf7017.ctex"
+uid="uid://js847nprxa6s"
+path="res://.godot/imported/sw_eruption.png-e3e01ea5966c3fcfc4a6b403cc30902e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://p3/p3_arena_ultimate_relativity.png"
-dest_files=["res://.godot/imported/p3_arena_ultimate_relativity.png-34880fac30c6794fc35951d098cf7017.ctex"]
+source_file="res://ui/strat_ui/party_list/buffs/p3/sw_eruption.png"
+dest_files=["res://.godot/imported/sw_eruption.png-e3e01ea5966c3fcfc4a6b403cc30902e.ctex"]
 
 [params]
 

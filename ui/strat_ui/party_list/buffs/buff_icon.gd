@@ -14,7 +14,7 @@ var data: BuffData:
 		if value == null or data != null: return
 
 		data = value
-		#texture = data.icon if data.icon else null
+		_icon.texture = data.icon if data.icon else null
 
 
 var instance: BuffInstance:

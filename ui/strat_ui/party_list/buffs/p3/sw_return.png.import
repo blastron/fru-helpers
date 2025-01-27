@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cfsxs4w3f5pgp"
-path="res://.godot/imported/p1_thancred_hitbox.png-839f7fe4c7e18d10713933aa199570f6.ctex"
+uid="uid://c0oyv34lsedyn"
+path="res://.godot/imported/sw_return.png-2bff05156484346ae2e7928e3a86e876.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://p1/tokens/p1_thancred_hitbox.png"
-dest_files=["res://.godot/imported/p1_thancred_hitbox.png-839f7fe4c7e18d10713933aa199570f6.ctex"]
+source_file="res://ui/strat_ui/party_list/buffs/p3/sw_return.png"
+dest_files=["res://.godot/imported/sw_return.png-2bff05156484346ae2e7928e3a86e876.ctex"]
 
 [params]
 

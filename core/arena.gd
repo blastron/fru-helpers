@@ -5,6 +5,9 @@ class_name Arena extends CanvasLayer
 @export var _player_token_type: PackedScene
 
 
+signal locator_clicked(locator: Locator)
+
+
 func _ready() -> void:
 	assert(_root)
 	assert(_player_token_type)
@@ -15,11 +18,6 @@ func _ready() -> void:
 	
 	for locator: Locator in _root.find_children("", "Locator"):
 		_register_locator(locator)
-
-
-func connect_locator_signals(callable: Callable) -> void:
-	for locator: Locator in _root.find_children("", "Locator"):
-		locator.on_clicked.connect(callable)
 
 
 func create_player_tokens(player_data: Array[PlayerData]) -> Array[PlayerToken]:
@@ -73,6 +71,10 @@ static func get_layer_name(layer: _Layers) -> String:
 # Registers a token and sets its Z-order.
 func _register_token(token: Token) -> void:
 	print("ARENA: Registering token %s." % token.name)
+	
+	if token.get_parent() != _root: token.reparent(_root)
+		
+
 	token.importance_changed.connect(self._sort_object)
 	_sort_object(token)
 
@@ -125,10 +127,11 @@ var _locators: Array[Locator]
 # Registers a locator and sets its Z-order.
 func _register_locator(locator: Locator) -> void:
 	print("ARENA: Registering locator %s." % locator.name)
-	
-	assert(locator.find_parent(_root.name))
+
+	if locator.get_parent() != _root: locator.reparent(_root)
 	_locators.append(locator)	
 
+	locator.on_clicked.connect(self._on_locator_clicked)
 	locator.state_changed.connect(self._sort_object)
 	_sort_object(locator)
 
@@ -136,6 +139,10 @@ func _register_locator(locator: Locator) -> void:
 # Gets a list of registered locators.
 func get_locators() -> Array[Locator]:
 	return _locators.duplicate()
+
+
+func _on_locator_clicked(locator: Locator) -> void:
+	locator_clicked.emit(locator)
 
 	
 ##########
@@ -157,10 +164,18 @@ func _register_indicator(indicator: Indicator) -> void:
 	_sort_object(indicator)
 
 
+func add_beam_indicator(indicator_name: String, length: float, width: float, color: Color) -> Beam:
+	var beam: Beam = Beam.new(length, width, color)
+	beam.name = indicator_name
+
+	_register_indicator(beam)
+	return beam
+
+
 func add_circle_indicator(indicator_name: String, radius: float, invert: bool, color: Color) -> Circle:
 	var circle: Circle = Circle.new(radius, invert, color)
 	circle.name = indicator_name
-	
+
 	_register_indicator(circle)
 	return circle
 
@@ -171,6 +186,14 @@ func add_cone_indicator(indicator_name: String, radius: float, arc_width: float,
 
 	_register_indicator(cone)
 	return cone
+
+
+func add_donut_indicator(indicator_name: String, inner_radius: float, outer_radius: float, color: Color) -> Donut:
+	var donut: Donut = Donut.new(inner_radius, outer_radius, color)
+	donut.name = indicator_name
+
+	_register_indicator(donut)
+	return donut
 
 
 func add_tether_indicator(indicator_name: String, anchor_a: Token, anchor_b: Token, color: Color) -> Tether:

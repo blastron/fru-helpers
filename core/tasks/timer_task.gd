@@ -10,6 +10,7 @@ func _init(time: float) -> void:
 
 	
 func _process(delta: float) -> void:
-	_remaining_time -= delta
-	if _remaining_time <= 0:
-		task_completed.emit(self)
+	if _remaining_time > 0:
+		_remaining_time -= delta
+		if _remaining_time <= 0:
+			task_completed.emit(self)

@@ -64,7 +64,7 @@ func _ready() -> void:
 		
 	if _arena:
 		# Start listening for clicks on the locators in the arena.
-		_arena.connect_locator_signals(self.__locator_pressed)
+		_arena.locator_clicked.connect(self.__locator_pressed)
 		
 		# Create player tokens and save off which is the user-controlled one.
 		player_tokens = _arena.create_player_tokens(UserSettings.player_data)
@@ -500,7 +500,7 @@ func _get_active_locators(step_id: int) -> Array[Locator]:
 func __try_activate_locators(step_id: int) -> bool:
 	var active_locators: Array[Locator] = _get_active_locators(step_id)
 	var found_any_locators: bool = false
-	for locator: Locator in find_children("", "Locator"):
+	for locator: Locator in _arena.get_locators():
 		if locator.state in [Locator.State.INCORRECT, Locator.State.CORRECT]:
 			# Don't change the state of locators we're using to show failure. We ideally shouldn't get here, as we don't
 			#   want any user input after the user has made an incorrect choice.
@@ -589,7 +589,7 @@ var __all_valid_locators: Dictionary
 
 # Gets index of the next step. Returns -1 if there is no next step to advance to, either because the strat is complete
 #   or because the player failed the mechanic.
-func _get_next_step(step_id: int) -> int:
+func _get_next_step(current_step: int) -> int:
 	assert(false, "get_next_step() must be overridden within a strat subclass.")
 	return -1
 
@@ -664,10 +664,19 @@ func filter_living_only(query_tokens: Array[PlayerToken]) -> Array[PlayerToken]:
 	return output
 
 
+# Casts an array of player tokens to an array of generic tokens.
 func _downcast_player_tokens(tokens: Array[PlayerToken]) -> Array[Token]:
 	var downcast_tokens: Array[Token]
 	downcast_tokens.assign(tokens)
 	return downcast_tokens
+
+
+# Casts an array of generic tokens to an array of player tokens. Asserts if any token in the array is not a player.
+func _upcast_player_tokens(tokens: Array[Token]) -> Array[PlayerToken]:
+	var upcast_tokens: Array[PlayerToken]
+	upcast_tokens.assign(tokens)
+	return upcast_tokens
+
 	
 	
 ##########
@@ -696,8 +705,10 @@ func wait_for_fade_in_out(indicator: Indicator, in_time: float, out_time: float)
 ## TIMERS
 
 
-func add_delay_dependency(time: float) -> void:
-	add_dependency(TimerTask.new(time))
+func wait_for_duration(time: float) -> void:
+	var timer: TimerTask = TimerTask.new(time)
+	add_child(timer)
+	add_dependency(timer)
 
 	
 ## NAVIGATION EVENTS

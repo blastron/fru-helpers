@@ -80,6 +80,16 @@ var detailed_role: Role :
 		fake_role = value
 
 
+# Whether or not the player is a "support" (tank or healer).
+var is_support: bool:
+	get: return role in [Role.TANK, Role.HEALER]
+
+
+# Whether or not the player is a DPS.
+var is_dps: bool:
+	get: return role in [Role.MELEE, Role.RANGED]
+
+
 # Force a player into a specific role spot, ignoring their job. Use when you're running double phys ranged because your
 #   PCT is carrying the entire DPS meter on their back.
 # Set to Role.NONE if no fake role is assigned.
@@ -212,10 +222,13 @@ func get_active_buffs() -> Array[BuffData]:
 
 func has_buff(buff: BuffData) -> bool:
 	return _buff_instances.has(buff)
+	
+
+func get_buff_duration(buff: BuffData) -> int:
+	return _buff_instances[buff].duration if _buff_instances.has(buff) else -1
 
 
 func get_buff_instance(buff: BuffData) -> BuffInstance:
-	assert(_buff_instances.has(buff), "Could not find instance of buff %s on player %s." % [buff, self])
 	return _buff_instances[buff] if _buff_instances.has(buff) else null
 
 

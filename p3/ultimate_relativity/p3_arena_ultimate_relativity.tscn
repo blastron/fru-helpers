@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://7ip36kb2gmya"]
+
+[ext_resource type="Script" path="res://core/arena.gd" id="1_g7yec"]
+[ext_resource type="Texture2D" uid="uid://bd52rs24resx0" path="res://p3/ultimate_relativity/p3_arena_ultimate_relativity.png" id="1_rnepp"]
+[ext_resource type="PackedScene" uid="uid://kiocqomkwe8n" path="res://core/tokens/player/player_token.tscn" id="2_bnol5"]
+
+[node name="P3Arena" type="CanvasLayer" node_paths=PackedStringArray("_root")]
+script = ExtResource("1_g7yec")
+_root = NodePath("background/token root")
+_player_token_type = ExtResource("2_bnol5")
+
+[node name="background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+color = Color(0.203, 0.25085, 0.29, 1)
+
+[node name="arena" type="Sprite2D" parent="background"]
+position = Vector2(480, 360)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("1_rnepp")
+
+[node name="token root" type="Node2D" parent="background"]
+position = Vector2(480, 360)
