@@ -3,7 +3,7 @@
 [ext_resource type="Theme" uid="uid://iyl3cwffycsv" path="res://ui/strat_ui/description/description.tres" id="1_bly2k"]
 [ext_resource type="Script" path="res://ui/strat_ui/description/description_panel.gd" id="2_ctigi"]
 
-[node name="description" type="HBoxContainer" node_paths=PackedStringArray("_title", "_subtitle", "_subtitle_container", "_strat_description", "_next_button", "_prev_button", "_start_button", "_reset_button", "_explain_button", "_menu_button")]
+[node name="description" type="HBoxContainer" node_paths=PackedStringArray("_title", "_subtitle", "_subtitle_container", "_description_box", "_strat_description", "_next_button", "_prev_button", "_start_button", "_reset_button", "_explain_button", "_menu_button")]
 offset_right = 408.0
 offset_bottom = 146.0
 theme = ExtResource("1_bly2k")
@@ -12,6 +12,7 @@ script = ExtResource("2_ctigi")
 _title = NodePath("PanelContainer/VBoxContainer/MarginContainer/title")
 _subtitle = NodePath("PanelContainer/VBoxContainer/subtitle_container/subtitle")
 _subtitle_container = NodePath("PanelContainer/VBoxContainer/subtitle_container")
+_description_box = NodePath("PanelContainer/VBoxContainer/MarginContainer2/ScrollContainer/text layout")
 _strat_description = NodePath("PanelContainer/VBoxContainer/MarginContainer2/ScrollContainer/text layout/strat_description")
 _next_button = NodePath("PanelContainer/VBoxContainer/buttons/back_next/next_button")
 _prev_button = NodePath("PanelContainer/VBoxContainer/buttons/back_next/prev_button")

@@ -1,29 +1,51 @@
 keys,en
 P3_UR_TITLE,Ultimate Relativity
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
+P3_UR_EXPLAIN_BUFFS,"A large number of debuffs are assigned to each player at the start of the mechanic. The specific combinations are consistent enough that each player only needs to determine if they are in the [b]short[/b], [b]medium[/b], or [b]long[/b] group."
+P3_UR_EXPLAIN_BUFFS_2,"Seven players will have a [b][color=#EA87DD]fire[/color][/b] debuff, the length of which determines what group they are in: 10s is [b]short[/b], 20s is [b]medium[/b], and 30s is [b]long[/b]."
+P3_UR_EXPLAIN_BUFFS_3,"The last player will have a 20s [b][color=#B2E5E5]blizzard[/color][/b] debuff. If this player is a support, they are in the [b]short[/b] group; if they are a DPS, they are in the [b]long[/b] group."
+P3_UR_EXPLAIN_ORIENT,"Tethers are attached to each traffic light, indicating the order in which they will activate. These tethers are always in a fixed, Y-shaped pattern, although it can be rotated. For simplicity, we always orient ourselves so that our relative north is above the Y, as shown."
+P3_UR_EXPLAIN_ORIENT_2,"Each player resolves all of their mechanics on a single slice of the stage, determined by their debuffs and their role. See [b][url=https://docs.google.com/presentation/d/1ncHCSP8NUA_XlrdiRYVmHUgtuMiT_g0q_TpISp6KbyI/preview?slide=id.g31a9a4514bd_2250_68]the NAUR cheat sheet[/url][/b] for more information."
+P3_UR_EXPLAIN_FIRST_FIRE,Debuffs with [b]short[/b] timers trigger. Players in the [b]short[/b] group with [color=#EA87DD]fire[/color] should go to the edges of the stage within their slice. All other players should stack in the middle of the stage to share an [b][color=#F4EE95]unholy darkness[/color][/b] stack.
+P3_UR_EXPLAIN_FIRST_BAITS,"Arrows appear around three towers, indicating that they are about to shoot a beam at the closest player. Players in the [b]long[/b] group (30s [color=#EA87DD]fire[/color] and the [color=#B2E5E5]blizzard[/color] if on a DPS) go out to bait these. These beams will rotate after their initial placement, as indicated by the arrows. This rotation is in a very wide arc, so the initial bait must be close to the side of the tower."
+P3_UR_EXPLAIN_FIRST_BAITS_2,"Simultaneously, the shorter [b][color=#7FA2FF]return[/color][/b] debuff expires, marking the location the players will be teleported to at the end of the mechanic. The three [b]short[/b] players will always have a short return, and will always have an [b][color=#BAA3ED]eruption[/color][/b] debuff, so they place their return points away from the group, at their traffic lights."
+P3_UR_EXPLAIN_FIRST_BAITS_3,"The two [b]medium[/b] players place their return points as well. The support will always have [b][color=#BAA3ED]eruption[/color][/b], which they place out, and the DPS will always have [b][color=#A5C7EF]water[/color][/b], which is placed in the middle, slightly off-center to resolve the later [b][color=#FFE0ED]shadoweye[/color][/b] mechanic."
+P3_UR_EXPLAIN_SECOND_FIRE,Debuffs with [b]medium[/b] timers trigger. Players in the medium group move to the edge of the stage to place their [b][color=#EA87DD]fire[/color][/b] pool. All other players stack mid to share an [b][color=#F4EE95]unholy darkness[/color][/b] and to be inside the donut for [b][color=#B2E5E5]blizzard[/color][/b].
+P3_UR_EXPLAIN_SECOND_BAITS,"Three more towers begin firing their beams. These are baited by the [b]short[/b] group. Simultaneously, the longer [b][color=#7FA2FF]return[/color][/b] return markers are triggered. These are always on players in the [b]long[/b] group, and those players always have a [b][color=#FFE0ED]shadoweye[/color][/b] debuff, which resolves as a gaze attack. These rewinds are placed slightly off-center, so as to minimize the area that is unsafe to look at."
+P3_UR_EXPLAIN_THIRD_FIRE,"The [b]long[/b] debuffs expire. The [b][color=#EA87DD]fire[/color][/b] players go out, while the other players stay to soak [b][color=#F4EE95]unholy darkness[/color][/b]."
+P3_UR_EXPLAIN_THIRD_BAITS,"The final towers fire their beams, which are baited by the [b]medium[/b] group."
+P3_UR_EXPLAIN_REWIND,"Finally, the [b][color=#7FA2FF]return[/color][/b] markers activate, teleporting players to their previous positions."
+P3_UR_EXPLAIN_REWIND_2,[b]All players must look outward before being rewound to avoid the gaze attack![/b]
+P3_UR_EXPLAIN_REWIND_3,"If all return markers were correctly placed, the [color=#BAA3ED]eruptions[/color] will be placed away from the party, while the [color=#FFE0ED]shadoweye[/color] and [color=#A5C7EF]water[/color] will be in the center."
+P3_UR_FAILURE_WRONG_SLICE_N,"As the support in the [b]short[/b] group (either because you have a 10s [color=#EA87DD]fire[/color] or a 20s [color=#B2E5E5]blizzard[/color] debuff), you always resolve every mechanic north."
+P3_UR_FAILURE_WRONG_SLICE_S,"As the DPS in the [b]long[/b] group (either because you have a 30s [color=#EA87DD]fire[/color] or a 20s [color=#B2E5E5]blizzard[/color] debuff), you always resolve every mechanic south."
+P3_UR_FAILURE_WRONG_SLICE_E,"As the DPS with a 20-second [color=#EA87DD]fire[/color], you always resolve every mechanic east."
+P3_UR_FAILURE_WRONG_SLICE_W,"As the support with a 20-second [color=#EA87DD]fire[/color], you always resolve every mechanic west."
+P3_UR_FAILURE_WRONG_SLICE_NWNE,"As a support with one of the 30-second [color=#EA87DD]fire[/color] debuffs, you always resolve every mechanic along a northern diagonal, with healers going NW and tanks going NE."
+P3_UR_FAILURE_WRONG_SLICE_HH,"When both healers are in this group, H2 goes NW, and H1 goes NE."
+P3_UR_FAILURE_WRONG_SLICE_TT,"When both tanks are in this group, T1 goes NW, and T2 goes NE."
+P3_UR_FAILURE_WRONG_SLICE_SWSE,"As a DPS with one of the 10-second [color=#EA87DD]fire[/color] debuffs, you always resolve every mechanic along a southern diagonal, with ranged DPS going SW and melee going SE."
+P3_UR_FAILURE_WRONG_SLICE_RR,"When both ranged DPS are in this group, R2 goes SW, and R1 goes SE."
+P3_UR_FAILURE_WRONG_SLICE_MM,"When both melee DPS are in this group, M1 goes SW, and M2 goes SE."
+P3_UR_FAILURE_FIRST_FIRE_FIRE,"As a player with a short [color=#EA87DD]fire[/color] debuff, your first move is to bait your AOE on the outside of the stage."
+P3_UR_FAILURE_FIRST_FIRE_OTHER,"All players who do not have a short [color=#EA87DD]fire[/color] debuff should start in the center, so as to share the [color=#F4EE95]unholy darkness[/color] stack."
+P3_UR_FAILURE_SECOND_FIRE_FIRE,"As a player with a medium [color=#EA87DD]fire[/color] debuff, you must move to the edge of the stage to bait your AOE."
+P3_UR_FAILURE_SECOND_FIRE_BLIZZARD,"As the player with the [color=#B2E5E5]blizzard[/color] debuff, you must be in the center of the stage when you bait your donut."
+P3_UR_FAILURE_SECOND_FIRE_OTHER,"All players who do not have a medium [color=#EA87DD]fire[/color] debuff should stay in the center, so as to share the [color=#F4EE95]unholy darkness[/color] stack and be inside the safe spot of the [color=#B2E5E5]blizzard[/color] donut."
+P3_UR_FAILURE_THIRD_FIRE_FIRE,"As a player with a long [color=#EA87DD]fire[/color] debuff, you must move to the edge of the stage to bait your AOE."
+P3_UR_FAILURE_THIRD_FIRE_OTHER,"All players who do not have a long [color=#EA87DD]fire[/color] debuff should stay in the center, so as to share the [color=#F4EE95]unholy darkness[/color] stack."
+P3_UR_FAILURE_FIRST_BAIT_RETURN_N,"As the support player in the short group (either because you have a 10s [color=#EA87DD]fire[/color] or a 20s [color=#B2E5E5]blizzard[/color] debuff), you always have a short [color=#7FA2FF]return[/color] timer and an [color=#BAA3ED]eruption[/color], so you place your return marker out by your traffic light."
+P3_UR_FAILURE_FIRST_BAIT_RETURN_E,"As the DPS player with the 20s [color=#EA87DD]fire[/color], you always have a short [color=#7FA2FF]return[/color] timer and a [color=#A5C7EF]water[/color] stack, so you place your return marker in the middle of the arena, slightly off-center."
+P3_UR_FAILURE_FIRST_BAIT_RETURN_W,"As the support player with the 20s [color=#EA87DD]fire[/color] debuff, you always have a short [color=#7FA2FF]return[/color] timer and an [color=#BAA3ED]eruption[/color], so you place your return marker out by your traffic light."
+P3_UR_FAILURE_FIRST_BAIT_RETURN_SWSE,"As a DPS player with a short [color=#EA87DD]fire[/color] debuff, you always have a short [color=#7FA2FF]return[/color] timer and an [color=#BAA3ED]eruption[/color], so you place your return marker out by your traffic light."
+P3_UR_FAILURE_FIRST_BAIT_LASER_NWNE,"As a support player with a 30s [color=#EA87DD]fire[/color] debuff, you bait the lasers from your traffic light first."
+P3_UR_FAILURE_FIRST_BAIT_LASER_S,"As a DPS player in the long group (either because you have a 30s [color=#EA87DD]fire[/color] or a 20s [color=#B2E5E5]blizzard[/color] debuff), you bait the lasers from your traffic light first."
+P3_UR_FAILURE_SECOND_BAIT_RETURN_NWNE,"As a support player with a long [color=#EA87DD]fire[/color] debuff, you always have a long [color=#7FA2FF]return[/color] timer and a [color=#FFE0ED]shadoweye[/color], so you place your return marker in the middle of the arena, slightly off-center."
+P3_UR_FAILURE_SECOND_BAIT_RETURN_S,"As a DPS player in the long group (either because you have a 30s [color=#EA87DD]fire[/color] or a 20s [color=#B2E5E5]blizzard[/color] debuff), you always have a long [color=#7FA2FF]return[/color] timer and a [color=#FFE0ED]shadoweye[/color], so you place your return marker in the middle of the arena, slightly off-center."
+P3_UR_FAILURE_SECOND_BAIT_LASER_N,"As a support player in the short group (either because you have a 10s [color=#EA87DD]fire[/color] or a 20s [color=#B2E5E5]blizzard[/color] debuff), you bait the lasers from your traffic light second."
+P3_UR_FAILURE_SECOND_BAIT_LASER_SWSE,"As a DPS player with a short [color=#EA87DD]fire[/color] debuff, you bait the lasers from your traffic light second."
+P3_UR_FAILURE_THIRD_BAIT_LASER_E,"As the DPS player with the medium [color=#EA87DD]fire[/color] debuff, you bait the lasers from your traffic light last."
+P3_UR_FAILURE_THIRD_BAIT_LASER_W,"As the support player with the medium [color=#EA87DD]fire[/color] debuff, you bait the lasers from your traffic light last."
+P3_UR_FAILURE_BAIT_IDLE,"When not baiting a laser or placing a rewind, you should remain center to minimize movement and avoid unnecessary damage."
+P3_UR_FAILURE_BAIT_RETURN_OFF_CENTER,"When placing a [color=#7FA2FF]return[/color] point in the middle of the arena, you must place it slightly off-center, so that when the mechanic resolves, there will not be a [color=#FFE0ED]shadoweye[/color] player in your field of view."
+P3_UR_FAILURE_BAIT_LASER_DIRECTION_CCW,"Your traffic light was spinning counter-clockwise, so you should have stood to its right."
+P3_UR_FAILURE_BAIT_LASER_DIRECTION_CW,"Your traffic light was spinning clockwise, so you should have stood to its left."

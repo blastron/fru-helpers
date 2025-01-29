@@ -4,6 +4,7 @@ class_name DescriptionPanel extends Control
 @export var _title: Label
 @export var _subtitle: Label
 @export var _subtitle_container: Container
+@export var _description_box: VBoxContainer
 @export var _strat_description: RichTextLabel
 
 @export var _next_button: Button
@@ -57,7 +58,7 @@ func _init() -> void:
 	prev_enabled = false
 	start_enabled = false
 	explain_enabled = false
-	strat_description = ""
+	strat_description = []
 
 
 var title: String:
@@ -72,12 +73,37 @@ var subtitle: String:
 		if _subtitle_container: _subtitle_container.visible = not value.is_empty()
 
 
-var strat_description: String:
-	get: return _strat_description.text if _strat_description else ""
+var strat_description: Array[String]:
+	get:
+		if not _description_box: return []
+		
+		var output: Array[String]
+		for child in _description_box.get_children():
+			if child is RichTextLabel:
+				output.append(child.text)
+			
+		return output
 	set(value):
-		if _strat_description:
-			_strat_description.text = value
-			_strat_description.visible = not value.is_empty()
+		if not _description_box or not _strat_description: return
+		
+		# Remove all children from the box except for the strat description.
+		for child in _description_box.get_children():
+			if child != _strat_description:
+				_description_box.remove_child(child)
+				child.queue_free()
+			
+		# Set the first paragraph.
+		if len(value) == 0:
+			_strat_description.text = ""
+			return
+		else:
+			_strat_description.text = value[0]
+		
+		if len(value) > 1:
+			for index in range(1, len(value)):
+				var new_paragraph: RichTextLabel = _strat_description.duplicate()
+				new_paragraph.text = value[index]
+				_description_box.add_child(new_paragraph)
 
 
 func _ready() -> void:
@@ -88,8 +114,9 @@ func _ready() -> void:
 	if _explain_button: _explain_button.pressed.connect(func(): explain_pressed.emit())
 	if _menu_button: _menu_button.pressed.connect(self._menu_button_pressed)
 	
-	strat_description = ""
+	strat_description = []
 
 
 func _menu_button_pressed():
 	get_tree().change_scene_to_file("res://main.tscn")
+	

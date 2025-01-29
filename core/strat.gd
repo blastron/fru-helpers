@@ -100,8 +100,7 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 			if _mode == Mode.EXPLANATION:
 				# Show the explanation message for the current step.
 				var explainer_message: Array[String] = _get_explainer_message(new_step)
-				var concatenator: String = tr("COMMON_SENTENCE_SEPARATOR")
-				__ui.description_panel.strat_description = concatenator.join(explainer_message)
+				__ui.description_panel.strat_description = explainer_message
 
 			# All setup logic happens during substeps, so we don't need to do anything here.
 			pass
@@ -165,7 +164,7 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 			
 		State.STRAT_COMPLETE:
 			if previous_state != State.FAILING:
-				__ui.description_panel.strat_description = tr("COMMON_STRAT_MESSAGE_COMPLETE")
+				__ui.description_panel.strat_description = [tr("COMMON_STRAT_MESSAGE_COMPLETE")]
 			
 		_:
 			assert(false, "Unknown state entered!")
@@ -225,13 +224,12 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 	match current_state:
 		State.SETTING_UP:
 			# Setup logic has finished. Check to see if we require player input.
-			__all_valid_locators = _get_valid_movements(current_step)
 			if current_step == 0:
 				# Always wait for user decision on the first step, since we require the user to press the start button.
 				jump_to_state(current_step, State.WAITING_FOR_DECISION)
 			elif _mode == Mode.EXPLANATION:
-				# In explainer mode, if there is movement to perform, we want the user to have to press the next button.
-				if not __all_valid_locators.is_empty(): jump_to_state(current_step, State.WAITING_FOR_DECISION)
+				# In explainer mode, possibly pause for the player to press the Next button.
+				if _should_pause_for_explanation(current_step): jump_to_state(current_step, State.WAITING_FOR_DECISION)
 				else: jump_to_state(current_step, State.PLAYER_MOVEMENT)
 			elif _needs_user_decision(current_step):
 				# The strat wants the player to make a decision.
@@ -245,7 +243,8 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 				_arena.clear_explainers()
 		
 			# TODO: handle undo
-			var user_locators = __all_valid_locators[user_token] if __all_valid_locators.has(user_token) else []
+			var valid_movements: Dictionary = _get_valid_movements(current_step)
+			var user_locators = valid_movements[user_token] if valid_movements.has(user_token) else []
 			if __selected_locator and not user_locators.has(__selected_locator):
 				# The user selected the incorrect locator. Mark it as incorrect, then highlight the valid locators.
 				if __selected_locator:
@@ -256,8 +255,7 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 		
 				# Show the error message.
 				var failure_message: Array[String] = _get_failure_message(current_step, __selected_locator)
-				var concatenator: String = tr("COMMON_SENTENCE_SEPARATOR")
-				__ui.description_panel.strat_description = concatenator.join(failure_message)
+				__ui.description_panel.strat_description = failure_message
 			
 				# Skip to failure resolution.
 				jump_to_state(current_step, State.FAILING)
@@ -340,8 +338,13 @@ func _nav_explain() -> void:
 	__ui.description_panel.explain_enabled = false
 	
 	var explainer_message: Array[String] = _get_explainer_message(__current_step)
-	var concatenator: String = tr("COMMON_SENTENCE_SEPARATOR")
-	__ui.description_panel.strat_description = concatenator.join(explainer_message)
+	__ui.description_panel.strat_description = explainer_message
+
+
+# Determines whether the "next" button should be shown at the current step in the explanation process. By default, tests
+#   if that step prompts any player movements.
+func _should_pause_for_explanation(step_id: int) -> bool:
+	return !_get_valid_movements(step_id).is_empty()
 
 
 # Gets the message to show to the player for this step in explanation mode. Returns an array of strings, which will be
@@ -350,13 +353,12 @@ func _get_explainer_message(step_id: int) -> Array[String]:
 	return ["Explanation for step %d" % step_id]
 
 
-
-
 # Draws arrows indicating how tokens should move. By default, retrieves the list of valid movements and draws straight
 #   lines from the token to its intended destination.
 func _show_explainer_arrows(step_id: int) -> void:
-	for token in __all_valid_locators.keys():
-		var possible_destinations: Array = __all_valid_locators[token]
+	var valid_movements: Dictionary = _get_valid_movements(step_id)
+	for token in valid_movements.keys():
+		var possible_destinations: Array = valid_movements[token]
 		for destination in possible_destinations:
 			# Determine how long the arrow is.
 			var relative_destination: Vector2  = destination.position - token.position
@@ -456,7 +458,8 @@ func _get_valid_movements(step_id: int) -> Dictionary:
 #   the user's token go to a location other than their selection, if desired.
 func _get_actual_movements(step_id: int, user_selection: Locator) -> Dictionary:
 	var output: Dictionary = {}
-	for key in __all_valid_locators.keys():
+	var valid_movements: Dictionary = _get_valid_movements(step_id)
+	for key in valid_movements.keys():
 		var player_token: PlayerToken = key
 		if player_token.player_data.dead:
 			# Dead players do not move.
@@ -466,10 +469,10 @@ func _get_actual_movements(step_id: int, user_selection: Locator) -> Dictionary:
 			output[player_token] = user_selection
 			continue
 		
-		if __all_valid_locators[key].is_empty(): continue
+		if valid_movements[key].is_empty(): continue
 	
 		var destinations: Array[Locator]
-		destinations.assign(__all_valid_locators[key])
+		destinations.assign(valid_movements[key])
 
 		if len(destinations) > 1:
 			# In the case where multiple locations are valid, pick the one that is closest to the player's
@@ -580,11 +583,6 @@ var __selected_locator: Locator = null
 # The locators that should have been selected, but weren't. Used to highlight correct choices at the end of any
 #   post-failure resolution operations.
 var __valid_user_locators: Array[Locator]
-
-
-# The mapping of all tokens that want movement to the possible locations they could move. Assigned right after each
-#   setup step by calling _get_valid_movements().
-var __all_valid_locators: Dictionary
 
 
 # Gets index of the next step. Returns -1 if there is no next step to advance to, either because the strat is complete

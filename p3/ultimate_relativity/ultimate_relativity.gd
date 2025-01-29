@@ -299,10 +299,31 @@ func _give_buff(player: PlayerToken, buff: BuffData, duration: int) -> void:
 ##########
 ## EXPLANATION
 ##########
-	
+
+
+func _should_pause_for_explanation(step_id: int) -> bool:
+	return step_id in [
+		Step.ASSIGN_DEBUFFS, Step.ORIENT_NORTH,
+		Step.FIRST_FIRE, Step.SECOND_FIRE, Step.THIRD_FIRE,
+		Step.FIRST_BAITS, Step.SECOND_BAITS, Step.THIRD_BAITS,
+		Step.REWIND
+	]
+
 
 func _get_explainer_message(step_id: int) -> Array[String]:
-	return ["todo"]
+	match step_id:
+		Step.INITIAL_SETUP: return []
+		Step.ASSIGN_DEBUFFS: return ["P3_UR_EXPLAIN_BUFFS", "P3_UR_EXPLAIN_BUFFS_2", "P3_UR_EXPLAIN_BUFFS_3"]
+		Step.ORIENT_NORTH: return ["P3_UR_EXPLAIN_ORIENT", "P3_UR_EXPLAIN_ORIENT_2"]
+		Step.FIRST_FIRE: return ["P3_UR_EXPLAIN_FIRST_FIRE"]
+		Step.FIRST_BAITS: return ["P3_UR_EXPLAIN_FIRST_BAITS", "P3_UR_EXPLAIN_FIRST_BAITS_2", "P3_UR_EXPLAIN_FIRST_BAITS_3"]
+		Step.SECOND_FIRE: return ["P3_UR_EXPLAIN_SECOND_FIRE"]
+		Step.SECOND_BAITS: return ["P3_UR_EXPLAIN_SECOND_BAITS"]
+		Step.THIRD_FIRE: return ["P3_UR_EXPLAIN_THIRD_FIRE"]
+		Step.THIRD_BAITS: return ["P3_UR_EXPLAIN_THIRD_BAITS"]
+		Step.REWIND: return ["P3_UR_EXPLAIN_REWIND", "P3_UR_EXPLAIN_REWIND_2", "P3_UR_EXPLAIN_REWIND_3"]
+	
+	return []
 
 
 ##########
@@ -679,7 +700,7 @@ func _shoot_light_beams(indices: Array[int], step: int) -> void:
 		var light: TrafficLight = traffic_lights[index]
 		
 		var color: Color = _laser_color
-		if step != 0: color.a *= 0.5
+		if step != 0: color.a *= 0.25
 	
 		var beam_indicator: Beam = _arena.add_beam_indicator("beam", 1000, 90, color)
 		beam_indicator.position = light.position
@@ -698,6 +719,98 @@ func _get_next_step(current_step: int) -> int:
 
 
 func _get_failure_message(step_id: int, user_selection: Locator) -> Array[String]:
+	var center_locators: Array[Locator] = [locator_center]
+	for slice in locator_groups:
+		center_locators.append(slice.center_bait)
+	var is_center: bool = user_selection in center_locators
+	
+	var user_slice: UrLocatorGroup = _get_slice(user_token)
+	var is_right_slice: bool = user_selection in user_slice.as_array()
+	
+	if !is_right_slice and !is_center: return _get_slice_error_message()
+
+	match step_id:
+		Step.FIRST_FIRE:
+			if user_token.has_tag(_tag_short_resolution) and user_token.player_data.has_buff(_debuff_fire):
+				return ["P3_UR_FAILURE_FIRST_FIRE_FIRE"]
+			else: return ["P3_UR_FAILURE_FIRST_FIRE_OTHER"]
+			
+		Step.FIRST_BAITS:
+			if user_token.has_tag(_tag_long_resolution): return _get_laser_error_message(step_id, user_selection)
+			elif user_token.player_data.has_buff(_debuff_eruption):
+				if user_token.player_data.is_support:
+					if user_token.has_tag(_tag_short_resolution): return ["P3_UR_FAILURE_FIRST_BAIT_RETURN_N"]
+					else: return ["P3_UR_FAILURE_FIRST_BAIT_RETURN_W"]
+				else: return ["P3_UR_FAILURE_FIRST_BAIT_RETURN_SWSE"]
+			elif user_token.player_data.has_buff(_debuff_water):
+				if is_center: return ["P3_UR_FAILURE_BAIT_RETURN_OFF_CENTER"]
+				else: return ["P3_UR_FAILURE_FIRST_BAIT_RETURN_E"]
+			else: return ["P3_UR_FAILURE_BAIT_IDLE"]
+			
+		Step.SECOND_FIRE:
+			if user_token.has_tag(_tag_medium_resolution) and user_token.player_data.has_buff(_debuff_fire):
+				return ["P3_UR_FAILURE_SECOND_FIRE_FIRE"]
+			elif user_token.player_data.has_buff(_debuff_blizzard): return ["P3_UR_FAILURE_SECOND_FIRE_BLIZZARD"]
+			else: return ["P3_UR_FAILURE_SECOND_FIRE_OTHER"]
+			
+		Step.SECOND_BAITS:
+			if user_token.has_tag(_tag_short_resolution): return _get_laser_error_message(step_id, user_selection)
+			elif user_token.player_data.has_buff(_debuff_shadoweye):
+				if user_token.player_data.is_support: return ["P3_UR_FAILURE_SECOND_BAIT_RETURN_NWNE"]
+				else: return ["P3_UR_FAILURE_SECOND_BAIT_RETURN_S"]
+			else: return ["P3_UR_FAILURE_BAIT_IDLE"]
+			
+		Step.THIRD_FIRE:
+			if user_token.has_tag(_tag_long_resolution) and user_token.player_data.has_buff(_debuff_fire):
+				return ["P3_UR_FAILURE_THIRD_FIRE_FIRE"]
+			else: return ["P3_UR_FAILURE_THIRD_FIRE_OTHER"]
+			
+		Step.THIRD_BAITS:
+			if user_token.has_tag(_tag_short_resolution): return _get_laser_error_message(step_id, user_selection)
+			else: return ["P3_UR_FAILURE_BAIT_IDLE"]
+
+	return []
+
+	
+func _get_slice_error_message() -> Array[String]:
+	var user_slice: UrLocatorGroup = _get_slice(user_token)
+	if user_slice == locator_groups[0]: return ["P3_UR_FAILURE_WRONG_SLICE_N"]
+	elif user_slice == locator_groups[1]:
+		var output: Array[String] = ["P3_UR_FAILURE_WRONG_SLICE_NWNE"]
+		if user_token.player_data.role == PlayerData.Role.HEALER: output.append("P3_UR_FAILURE_WRONG_SLICE_HH")
+		return output
+	elif user_slice == locator_groups[2]: return ["P3_UR_FAILURE_WRONG_SLICE_E"]
+	elif user_slice == locator_groups[3]:
+		var output: Array[String] = ["P3_UR_FAILURE_WRONG_SLICE_SWSE"]
+		if user_token.player_data.role == PlayerData.Role.RANGED: output.append("P3_UR_FAILURE_WRONG_SLICE_RR")
+		return output
+	elif user_slice == locator_groups[4]: return ["P3_UR_FAILURE_WRONG_SLICE_S"]
+	elif user_slice == locator_groups[5]:
+		var output: Array[String] = ["P3_UR_FAILURE_WRONG_SLICE_SWSE"]
+		if user_token.player_data.role == PlayerData.Role.MELEE: output.append("P3_UR_FAILURE_WRONG_SLICE_MM")
+		return output
+	elif user_slice == locator_groups[6]: return ["P3_UR_FAILURE_WRONG_SLICE_W"]
+	elif user_slice == locator_groups[7]:
+		var output: Array[String] = ["P3_UR_FAILURE_WRONG_SLICE_NWNE"]
+		if user_token.player_data.role == PlayerData.Role.TANK: output.append("P3_UR_FAILURE_WRONG_SLICE_TT")
+		return output
+	return []
+
+	
+func _get_laser_error_message(step_id: int, user_selection: Locator) -> Array[String]:
+	var user_slice: UrLocatorGroup = _get_slice(user_token)
+	if user_selection == user_slice.cw_line_bait: return ["P3_UR_FAILURE_BAIT_LASER_DIRECTION_CCW"]
+	elif user_selection == user_slice.ccw_line_bait: return ["P3_UR_FAILURE_BAIT_LASER_DIRECTION_CW"]
+	elif step_id == Step.FIRST_BAITS:
+		if user_token.player_data.is_support: return ["P3_UR_FAILURE_FIRST_BAIT_LASER_NWNE"]
+		else: return ["P3_UR_FAILURE_FIRST_BAIT_LASER_S"]
+	elif step_id == Step.SECOND_BAITS:
+		if user_token.player_data.is_support: return ["P3_UR_FAILURE_SECOND_BAIT_LASER_N"]
+		else: return ["P3_UR_FAILURE_SECOND_BAIT_LASER_SWSE"]
+	elif step_id == Step.THIRD_BAITS:
+		if user_token.player_data.is_support: return ["P3_UR_FAILURE_THIRD_BAIT_LASER_W"]
+		else: return ["P3_UR_FAILURE_THIRD_BAIT_LASER_W"]
+	
 	return []
 
 
