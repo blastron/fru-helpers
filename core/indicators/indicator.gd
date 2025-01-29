@@ -18,6 +18,10 @@ var is_important: bool = false:
 func is_static_indicator() -> bool : return true
 
 
+# Whether to destroy this indicator automatically on fade out.
+@export var _permanent: bool = false
+
+
 @export var _alpha: float = 1 :
 	get: return _alpha
 	set(value):
@@ -56,21 +60,23 @@ func _process(delta: float) -> void:
 	elif __fade_out_time > 0:
 		__fade_percentage -= delta / __fade_out_time
 		if __fade_percentage <= 0:
-			# We've finished fading out. Destroy ourselves.
+			# We've finished fading out.
 			task_completed.emit(self)
 		
-			# Try to remove the indicator from the arena it's in, if any.
-			var did_remove_from_arena: bool = false
-			var current_parent: Node = get_parent()
-			while current_parent:
-				if current_parent is Arena:
-					did_remove_from_arena = true
-					current_parent.remove_indicator(self)
-					break
-				else: current_parent = current_parent.get_parent()
-			
-			# The indicator was not in an arena. Destroy it directly.
-			if not did_remove_from_arena: queue_free()
+			if !_permanent:
+				# We're set to destroy ourselves after fade out. Try to remove the indicator from the arena it's in,
+				#   if any.
+				var did_remove_from_arena: bool = false
+				var current_parent: Node = get_parent()
+				while current_parent:
+					if current_parent is Arena:
+						did_remove_from_arena = true
+						current_parent.remove_indicator(self)
+						break
+					else: current_parent = current_parent.get_parent()
+				
+				# The indicator was not in an arena. Destroy it directly.
+				if not did_remove_from_arena: queue_free()
 		else:
 			_alpha = ease(clamp(__fade_percentage, 0, 1), 0.3)
 

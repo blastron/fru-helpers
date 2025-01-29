@@ -24,3 +24,4 @@ func _ready() -> void:
 	
 	if _spinner:
 		_spinner._alpha = 0
+		_spinner._permanent = true

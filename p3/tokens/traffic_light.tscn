@@ -28,4 +28,5 @@ radius = 75.0
 [node name="Spinner" type="Node2D" parent="."]
 script = ExtResource("4_wn3h7")
 radius = 40.0
+_permanent = true
 _alpha = 0.0

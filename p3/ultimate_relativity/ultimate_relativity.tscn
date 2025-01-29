@@ -201,7 +201,7 @@ offset_bottom = 51.0
 script = ExtResource("15_aqwif")
 
 [node name="Node2D" type="Node2D" parent="P3Arena/background/token root" index="5"]
-position = Vector2(201, 0)
+position = Vector2(76, 0)
 
 [node name="StratUi" parent="." instance=ExtResource("3_k8ndh")]
 

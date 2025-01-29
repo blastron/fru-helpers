@@ -8,18 +8,19 @@ class_name UltimateRelativity extends Strat
 const _purple_tether_color: Color = Color(0.79, 0.05, 0.87)
 const _yellow_tether_color: Color = Color(0.92, 0.92, 0.16)
 
-const _blizzard_puddle_color: Color = Color(0.30, 0.87, 1.0)
-const _darkness_puddle_color: Color = Color(0.55, 0.0, 0.76)
-const _eruption_puddle_color: Color = Color(0.56, 0.47, 0.33)
-const _fire_puddle_color: Color = Color(0.80, 0.60, 0.16)
+const _blizzard_puddle_color: Color = Color(0.51, 0.85, 0.85)
+const _darkness_puddle_color: Color = Color(0.92, 0.89, 0.39)
+const _eruption_puddle_color: Color = Color(0.61, 0.4, 1.0)
+const _fire_puddle_color: Color = Color(0.88, 0.32, 0.8)
 const _laser_color: Color = Color(0.95, 1.0, 0.6)
 const _return_puddle_color: Color = Color(0.1, 0.2, 0.9)
-const _water_puddle_color: Color = Color(0.50, 0.70, 1.0)
-
+const _water_puddle_color: Color = Color(0.52, 0.69, 0.8)
 
 const _first_lasers: Array[int] = [1, 4, 7]
 const _second_lasers: Array[int] = [0, 3, 5]
 const _third_lasers: Array[int] = [2, 6]
+
+const _active_laser_pause: float = 0.5
 
 
 @export_group("Locators - Setup")
@@ -411,6 +412,10 @@ func _get_valid_movements_inner(step_id: int, any_center: bool) -> Dictionary:
 				else:
 					# All other players chill mid, since rewinds have been placed.
 					output[player] = center_locators if any_center else [locator_center]
+		
+			Step.REWIND:
+				# If the player just baited a laser, have them move in a little bit so as to not get sniped.
+				if player.has_tag(_tag_medium_resolution): output[player] = [slice.final_safety_spot]
 	
 	return output
 
@@ -426,49 +431,121 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 			#   counters down as a result, but this is better UX for training purposes.
 			finish_state()
 			
-		Step.FIRST_FIRE, Step.SECOND_FIRE, Step.THIRD_FIRE:
-			if step_id == Step.FIRST_FIRE:
-				# Fade out the tethers while the fire puddles go off, but don't wait for them.
-				for tether_index in range(5):
-					var name: String = "orient_%d" % tether_index
-					var tether: Tether = _arena.get_indicator(name)
-					tether.fade_out(1)
-				
-				# Decrement debuffs by an extra 5 seconds to bring the numbers in line with what they are on other
-				#   steps.
-				_decrement_debuffs(5)
+		Step.FIRST_FIRE:
+			# Fade out the tethers while the fire puddles go off, but don't wait for them.
+			for tether_index in range(5):
+				var name: String = "orient_%d" % tether_index
+				var tether: Tether = _arena.get_indicator(name)
+				tether.fade_out(1)
 			
-			_decrement_debuffs(5)
+			# Decrement debuffs by 10 seconds. If we were being very pedantic, this would be 7 seconds, and the above
+			#   step would wait for 3.
+			_decrement_debuffs(10)
+
+			# Trigger explosions, then end the state.
 			_trigger_explosions()
+			wait_for_duration(1)
+			finish_state()
+
+		Step.FIRST_BAITS:
+			# Have the new lasers target their closest player and fire their first beam.
+			var new_laser_set: Array[int] = _first_lasers
+			_point_traffic_lights(new_laser_set)
+			_shoot_light_beams(new_laser_set, 0)
+			wait_for_duration(1)
+
+			# Place rewinds for characters that have them.
+			_decrement_debuffs(5)
+			_place_returns(24)
+
 			finish_state()
 			
 			
-		Step.FIRST_BAITS, Step.SECOND_BAITS, Step.THIRD_BAITS:
-			var laser_set: Array[int] = _first_lasers if step_id == Step.FIRST_BAITS else \
- 				_second_lasers if step_id == Step.SECOND_BAITS else _third_lasers
+		Step.SECOND_FIRE, Step.THIRD_FIRE:
+			# When resolving the next sets of AOEs, lasers are firing. Draw those first.
+			var active_laser_set: Array[int] = _first_lasers if step_id == Step.SECOND_FIRE else _second_lasers
+			match substep_id:
+				0:
+					# Pause momentarily to establish rhythm. We also decrement the debuffs here because the lasers don't
+					#   actually fire once per second, so we need to fudge it.
+					_decrement_debuffs(1)
+					wait_for_duration(_active_laser_pause / 2)
+					finish_substep()
+				
+				1, 2, 3:
+					# Shoot 3 consecutive beams. After this, 4 beams (including the original) will have fired.
+					_decrement_debuffs(1)
+					_shoot_light_beams(active_laser_set, substep_id + 1)
+					wait_for_duration(_active_laser_pause if substep_id != 3 else (_active_laser_pause / 2))
+					finish_substep()
+				
+				4:
+					# Trigger explosions.
+					_decrement_debuffs(1)
+					_trigger_explosions()
+					
+					wait_for_duration(_active_laser_pause / 2)
+					finish_substep()
+			
+				5:
+					# Fire the fifth laser.
+					_shoot_light_beams(active_laser_set, 4)
+					wait_for_duration(_active_laser_pause)
+					finish_state()
+			
+			
+		Step.SECOND_BAITS, Step.THIRD_BAITS:
+			var active_laser_set: Array[int] = _first_lasers if step_id == Step.SECOND_BAITS else _second_lasers
 		
 			match substep_id:
 				0:
-					_point_traffic_lights(laser_set)
-					wait_for_duration(0.5)
-
+					# Pause momentarily to establish rhythm. We also decrement the debuffs here because the lasers don't
+					#   actually fire once per second, so we need to fudge it.
+					_decrement_debuffs(1)
+					wait_for_duration(_active_laser_pause / 2)
 					finish_substep()
-				1:
-					_shoot_light_beams(laser_set, 0)
+				1, 2, 3, 4:
+					# Shoot 4 consecutive beams. After this, 9 beams (including the original) will have fired.
+					_decrement_debuffs(1)
+					_shoot_light_beams(active_laser_set, substep_id + 4)
+					wait_for_duration(_active_laser_pause if substep_id != 4 else (_active_laser_pause / 2))
+					finish_substep()
+			
+				5:
+					# Have the new lasers target the closest player and shoot their first beams.
+					var new_laser_set: Array[int] = _second_lasers if step_id == Step.SECOND_BAITS else _third_lasers
+					_point_traffic_lights(new_laser_set)
+					_shoot_light_beams(new_laser_set, 0)
+			
+					if step_id == Step.SECOND_BAITS:
+						# Place rewinds for characters that have them. By now, we will have decremented debuffs five
+						#   in this step, so we don't have to worry about doing that ourselves here.
+						_place_returns(14)
 
-					_decrement_debuffs(5)
-					match step_id:
-						Step.FIRST_BAITS: _place_returns(24)
-						Step.SECOND_BAITS: _place_returns(14)
+					wait_for_duration(_active_laser_pause / 2)
+					finish_substep()
 					
+				6:
+					# Fire the last beam from the previously active laser sets.
+					_shoot_light_beams(active_laser_set, 10)
+					wait_for_duration(_active_laser_pause)
 					finish_state()
 			
 		Step.REWIND:
+			var active_laser_set: Array[int] = _third_lasers
+			
 			match substep_id:
-				0:
-					_decrement_debuffs(4)
+				0, 1, 2, 3:
+					# Shoot 4 consecutive beams. After this, 5 beams (including the original) will have fired.
+					_decrement_debuffs(1)
+					_shoot_light_beams(active_laser_set, substep_id + 1)
+					wait_for_duration(_active_laser_pause if substep_id != 3 else (_active_laser_pause / 2))
+					finish_substep()
+				4:
 					# Move all tokens to their rewind spots. Since we got here without failing, we can just warp
 					#   everyone to the right spot without having to track where they technically dropped their rewinds.
+					_clear_returns()
+
 					for player in player_tokens:
 						player.player_data.remove_buff(_debuff_return)
 						
@@ -476,13 +553,26 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 						if player.player_data.has_buff(_debuff_eruption): player.move_to_locator(slice.eruption_bait)
 						else: player.move_to_locator(slice.center_bait)
 
-					wait_for_duration(1)
+					wait_for_duration(_active_laser_pause / 2)
+					finish_substep()
+					
+				5, 6:
+					# Fire the sixth and seventh beams.
+					_decrement_debuffs(1)
+					_shoot_light_beams(active_laser_set, substep_id)
+					wait_for_duration(_active_laser_pause if substep_id != 3 else (_active_laser_pause / 2))
 					finish_substep()
 				
-				1:
-					# NOTE: Return freezes you for a second, then moves you, then the explosions go off.
-					_decrement_debuffs(3)
+				7:
+					# Trigger the darkness and water explosions.
+					_decrement_debuffs(1)
 					_trigger_explosions()
+					finish_substep()
+			
+				8, 9, 10:
+					# Fire the last three beams.
+					_shoot_light_beams(active_laser_set, substep_id - 1)
+					wait_for_duration(_active_laser_pause)
 					finish_state()
 			
 		_:
@@ -518,7 +608,7 @@ func _handle_blizzard(player: PlayerToken) -> void:
 
 	var donut_indicator: Donut = _arena.add_donut_indicator("blizzard", 80, 200, _blizzard_puddle_color)
 	donut_indicator.position = player.position
-	wait_for_fade_out(donut_indicator, 1)
+	donut_indicator.fade_out(1)
 
 
 func _handle_darkness(player: PlayerToken) -> void:
@@ -526,7 +616,7 @@ func _handle_darkness(player: PlayerToken) -> void:
 
 	var circle_indicator: Circle = _arena.add_circle_indicator("darkness", 70, false, _darkness_puddle_color)
 	circle_indicator.position = player.position
-	wait_for_fade_out(circle_indicator, 1)
+	circle_indicator.fade_out(1)
 
 
 func _handle_eruption(player: PlayerToken) -> void:
@@ -534,7 +624,7 @@ func _handle_eruption(player: PlayerToken) -> void:
 
 	var circle_indicator: Circle = _arena.add_circle_indicator("eruption", 90, false, _eruption_puddle_color)
 	circle_indicator.position = player.position
-	wait_for_fade_out(circle_indicator, 1)
+	circle_indicator.fade_out(1)
 
 
 func _handle_fire(player: PlayerToken) -> void:
@@ -542,7 +632,7 @@ func _handle_fire(player: PlayerToken) -> void:
 
 	var circle_indicator: Circle = _arena.add_circle_indicator("fire", 160, false, _fire_puddle_color)
 	circle_indicator.position = player.position
-	wait_for_fade_out(circle_indicator, 1)
+	circle_indicator.fade_out(1)
 
 
 func _handle_shadoweye(player: PlayerToken) -> void:
@@ -554,7 +644,7 @@ func _handle_water(player: PlayerToken) -> void:
 
 	var circle_indicator: Circle = _arena.add_circle_indicator("eruption", 70, false, _water_puddle_color)
 	circle_indicator.position = player.position
-	wait_for_fade_out(circle_indicator, 1)
+	circle_indicator.fade_out(1)
 
 
 func _place_returns(new_duration: int) -> void:
@@ -565,10 +655,14 @@ func _place_returns(new_duration: int) -> void:
 			var return_instance: BuffInstance = player.player_data.add_buff(_debuff_return)
 			return_instance.duration = new_duration
 
-			var circle_indicator: Circle = _arena.add_circle_indicator("return", 20, false, _return_puddle_color)
+			var circle_indicator: Circle = _arena.add_circle_indicator("return", 25, false, _return_puddle_color)
 			circle_indicator.position = player.position
 			wait_for_fade_in(circle_indicator, 0.5)
-	
+
+
+func _clear_returns() -> void:
+	for indicator in _arena.get_indicators("return"):
+		indicator.fade_out(0.5)
 
 	
 func _point_traffic_lights(indices: Array[int]) -> void:
@@ -583,11 +677,14 @@ func _point_traffic_lights(indices: Array[int]) -> void:
 func _shoot_light_beams(indices: Array[int], step: int) -> void:
 	for index in indices:
 		var light: TrafficLight = traffic_lights[index]
+		
+		var color: Color = _laser_color
+		if step != 0: color.a *= 0.5
 	
-		var beam_indicator: Beam = _arena.add_beam_indicator("beam", 1000, 90, _laser_color)
+		var beam_indicator: Beam = _arena.add_beam_indicator("beam", 1000, 90, color)
 		beam_indicator.position = light.position
-		beam_indicator.rotation = light.hitbox_angle + step * deg_to_rad(15)
-		wait_for_fade_out(beam_indicator, 1)
+		beam_indicator.rotation = light.hitbox_angle + (step * deg_to_rad(15) * (1 if light.clockwise else -1))
+		beam_indicator.fade_out(1 if step == 0 else 0.5)
 
 
 ##########
