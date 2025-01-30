@@ -250,7 +250,7 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 				if __selected_locator:
 					__selected_locator.state = Locator.State.INCORRECT
 		
-				for valid_locator in user_locators:
+				for valid_locator in _get_failure_hint_movements(current_step):
 					valid_locator.state = Locator.State.CORRECT
 		
 				# Show the error message.
@@ -481,6 +481,18 @@ func _get_actual_movements(step_id: int, user_selection: Locator) -> Dictionary:
 			destinations = sort_locators_by_distance(destinations, player_token.position, true)
 
 		output[player_token] = destinations[0]
+	
+	return output
+
+
+# Gets the locators to show as "correct" when the user has picked an incorrect location. By default, retrieves all
+#   valid locators from _get_valid_movements().
+func _get_failure_hint_movements(step_id: int) -> Array[Locator]:
+	var output: Array[Locator] = []
+	
+	var valid_movements: Dictionary = _get_valid_movements(step_id)
+	if user_token in valid_movements:
+		output.assign(valid_movements[user_token])
 	
 	return output
 

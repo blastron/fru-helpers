@@ -83,15 +83,15 @@ func _enter_setup(step_id: int, substep_id: int) -> void:
 			
 		Step.ASSIGN_DEBUFFS:
 			var support_pool: Array[PlayerToken] = [
-				get_player_token(PlayerData.Role.HEALER, PlayerData.Group.GROUP_ONE),
 				get_player_token(PlayerData.Role.HEALER, PlayerData.Group.GROUP_TWO),
+				get_player_token(PlayerData.Role.HEALER, PlayerData.Group.GROUP_ONE),
 				get_player_token(PlayerData.Role.TANK, PlayerData.Group.GROUP_ONE),
 				get_player_token(PlayerData.Role.TANK, PlayerData.Group.GROUP_TWO)
 			]
 
 			var dps_pool: Array[PlayerToken] = [
-				get_player_token(PlayerData.Role.RANGED, PlayerData.Group.GROUP_ONE),
 				get_player_token(PlayerData.Role.RANGED, PlayerData.Group.GROUP_TWO),
+				get_player_token(PlayerData.Role.RANGED, PlayerData.Group.GROUP_ONE),
 				get_player_token(PlayerData.Role.MELEE, PlayerData.Group.GROUP_ONE),
 				get_player_token(PlayerData.Role.MELEE, PlayerData.Group.GROUP_TWO)
 			]
@@ -372,10 +372,6 @@ func _get_actual_movements(step_id: int, user_selection: Locator) -> Dictionary:
 
 	
 func _get_valid_movements_inner(step_id: int, any_center: bool) -> Dictionary:
-	var center_locators: Array[Locator] = [locator_center]
-	for slice in locator_groups:
-		center_locators.append(slice.center_bait)
-	
 	var output: Dictionary = {}
 	for player in player_tokens:
 		var slice: UrLocatorGroup = _get_slice(player)
@@ -386,7 +382,7 @@ func _get_valid_movements_inner(step_id: int, any_center: bool) -> Dictionary:
 					output[player] = [slice.fire_bait]
 				else:
 					# All other players stay center to soak the first stack.
-					output[player] = center_locators if any_center else [locator_center]
+					output[player] = [locator_center, slice.center_bait] if any_center else [locator_center]
 				
 			Step.FIRST_BAITS:
 				if player.has_tag(_tag_long_resolution):
@@ -405,7 +401,7 @@ func _get_valid_movements_inner(step_id: int, any_center: bool) -> Dictionary:
 					output[player] = [slice.fire_bait]
 				else:
 					# All other players stay center to soak the second stack and/or place the blizzard donut.
-					output[player] = center_locators if any_center else [locator_center]
+					output[player] = [locator_center, slice.center_bait] if any_center else [locator_center]
 					
 			Step.SECOND_BAITS:
 				if player.has_tag(_tag_short_resolution):
@@ -416,7 +412,7 @@ func _get_valid_movements_inner(step_id: int, any_center: bool) -> Dictionary:
 					output[player] = [slice.center_bait]
 				else:
 					# All other players should move back to center in preparation for the third darkness stack.
-					output[player] = center_locators if any_center else [locator_center]
+					output[player] = [locator_center, slice.center_bait] if any_center else [locator_center]
 					
 			Step.THIRD_FIRE:
 				if player.has_tag(_tag_long_resolution) and player.player_data.has_buff(_debuff_fire):
@@ -424,7 +420,7 @@ func _get_valid_movements_inner(step_id: int, any_center: bool) -> Dictionary:
 					output[player] = [slice.fire_bait]
 				else:
 					# All other players stay center to soak the third stack.
-					output[player] = center_locators if any_center else [locator_center]
+					output[player] = [locator_center, slice.center_bait] if any_center else [locator_center]
 					
 			Step.THIRD_BAITS:
 				if player.has_tag(_tag_medium_resolution):
@@ -432,11 +428,22 @@ func _get_valid_movements_inner(step_id: int, any_center: bool) -> Dictionary:
 					output[player] = [slice.cw_line_bait if _get_slice_light(slice).clockwise else slice.ccw_line_bait]
 				else:
 					# All other players chill mid, since rewinds have been placed.
-					output[player] = center_locators if any_center else [locator_center]
+					output[player] = [slice.center_bait]
 		
 			Step.REWIND:
 				# If the player just baited a laser, have them move in a little bit so as to not get sniped.
 				if player.has_tag(_tag_medium_resolution): output[player] = [slice.final_safety_spot]
+	
+	return output
+
+
+func _get_failure_hint_movements(step_id: int) -> Array[Locator]:
+	var output: Array[Locator] = []
+	
+	# This strat either has one valid location for the player to move to, or they could be in either center spot. When
+	#   we return centers, we return locator_center first, and that's what we'd prefer to show them as the correct move.
+	var all_movements: Array[Locator] = super(step_id)
+	if all_movements: output.append(all_movements[0])
 	
 	return output
 
@@ -719,15 +726,10 @@ func _get_next_step(current_step: int) -> int:
 
 
 func _get_failure_message(step_id: int, user_selection: Locator) -> Array[String]:
-	var center_locators: Array[Locator] = [locator_center]
-	for slice in locator_groups:
-		center_locators.append(slice.center_bait)
-	var is_center: bool = user_selection in center_locators
-	
+	# Report an error if the user has selected something outside of their slice.
 	var user_slice: UrLocatorGroup = _get_slice(user_token)
 	var is_right_slice: bool = user_selection in user_slice.as_array()
-	
-	if !is_right_slice and !is_center: return _get_slice_error_message()
+	if !is_right_slice and user_selection != locator_center: return _get_slice_error_message(user_selection)
 
 	match step_id:
 		Step.FIRST_FIRE:
@@ -743,7 +745,7 @@ func _get_failure_message(step_id: int, user_selection: Locator) -> Array[String
 					else: return ["P3_UR_FAILURE_FIRST_BAIT_RETURN_W"]
 				else: return ["P3_UR_FAILURE_FIRST_BAIT_RETURN_SWSE"]
 			elif user_token.player_data.has_buff(_debuff_water):
-				if is_center: return ["P3_UR_FAILURE_BAIT_RETURN_OFF_CENTER"]
+				if user_selection == locator_center: return ["`P3_UR_FAILURE_BAIT_RETURN_OFF_CENTER`"]
 				else: return ["P3_UR_FAILURE_FIRST_BAIT_RETURN_E"]
 			else: return ["P3_UR_FAILURE_BAIT_IDLE"]
 			
@@ -756,7 +758,8 @@ func _get_failure_message(step_id: int, user_selection: Locator) -> Array[String
 		Step.SECOND_BAITS:
 			if user_token.has_tag(_tag_short_resolution): return _get_laser_error_message(step_id, user_selection)
 			elif user_token.player_data.has_buff(_debuff_shadoweye):
-				if user_token.player_data.is_support: return ["P3_UR_FAILURE_SECOND_BAIT_RETURN_NWNE"]
+				if user_selection == locator_center: return ["P3_UR_FAILURE_BAIT_RETURN_OFF_CENTER"]
+				elif user_token.player_data.is_support: return ["P3_UR_FAILURE_SECOND_BAIT_RETURN_NWNE"]
 				else: return ["P3_UR_FAILURE_SECOND_BAIT_RETURN_S"]
 			else: return ["P3_UR_FAILURE_BAIT_IDLE"]
 			
@@ -766,35 +769,45 @@ func _get_failure_message(step_id: int, user_selection: Locator) -> Array[String
 			else: return ["P3_UR_FAILURE_THIRD_FIRE_OTHER"]
 			
 		Step.THIRD_BAITS:
-			if user_token.has_tag(_tag_short_resolution): return _get_laser_error_message(step_id, user_selection)
-			else: return ["P3_UR_FAILURE_BAIT_IDLE"]
+			if user_token.has_tag(_tag_medium_resolution): return _get_laser_error_message(step_id, user_selection)
+			else: return ["P3_UR_FAILURE_THIRD_BAIT_CENTERUP"]
 
 	return []
 
 	
-func _get_slice_error_message() -> Array[String]:
+func _get_slice_error_message(user_selection: Locator) -> Array[String]:
+	var output: Array[String]
+	
+	# Check to see if we should tell the user they are in the wrong slice or if they're on the wrong side of center.
+	var center_locators: Array[Locator] = [locator_center]
+	for slice in locator_groups:
+		center_locators.append(slice.center_bait)
+	if user_selection in center_locators: output.append("P3_UR_FAILURE_WRONG_SLICE_CENTER")	
+	else: output.append("P3_UR_FAILURE_WRONG_SLICE")
+	
 	var user_slice: UrLocatorGroup = _get_slice(user_token)
-	if user_slice == locator_groups[0]: return ["P3_UR_FAILURE_WRONG_SLICE_N"]
+	if user_slice == locator_groups[0]:
+		output.append("P3_UR_FAILURE_WRONG_SLICE_N")
 	elif user_slice == locator_groups[1]:
-		var output: Array[String] = ["P3_UR_FAILURE_WRONG_SLICE_NWNE"]
+		output.append("P3_UR_FAILURE_WRONG_SLICE_NWNE")
 		if user_token.player_data.role == PlayerData.Role.HEALER: output.append("P3_UR_FAILURE_WRONG_SLICE_HH")
-		return output
-	elif user_slice == locator_groups[2]: return ["P3_UR_FAILURE_WRONG_SLICE_E"]
+	elif user_slice == locator_groups[2]:
+		output.append("P3_UR_FAILURE_WRONG_SLICE_E")
 	elif user_slice == locator_groups[3]:
-		var output: Array[String] = ["P3_UR_FAILURE_WRONG_SLICE_SWSE"]
+		output.append("P3_UR_FAILURE_WRONG_SLICE_SWSE")
 		if user_token.player_data.role == PlayerData.Role.RANGED: output.append("P3_UR_FAILURE_WRONG_SLICE_RR")
-		return output
-	elif user_slice == locator_groups[4]: return ["P3_UR_FAILURE_WRONG_SLICE_S"]
+	elif user_slice == locator_groups[4]:
+		output.append("P3_UR_FAILURE_WRONG_SLICE_S")
 	elif user_slice == locator_groups[5]:
-		var output: Array[String] = ["P3_UR_FAILURE_WRONG_SLICE_SWSE"]
+		output.append("P3_UR_FAILURE_WRONG_SLICE_SWSE")
 		if user_token.player_data.role == PlayerData.Role.MELEE: output.append("P3_UR_FAILURE_WRONG_SLICE_MM")
-		return output
-	elif user_slice == locator_groups[6]: return ["P3_UR_FAILURE_WRONG_SLICE_W"]
+	elif user_slice == locator_groups[6]:
+		output.append("P3_UR_FAILURE_WRONG_SLICE_NW")
 	elif user_slice == locator_groups[7]:
-		var output: Array[String] = ["P3_UR_FAILURE_WRONG_SLICE_NWNE"]
+		output.append("P3_UR_FAILURE_WRONG_SLICE_NWNE")
 		if user_token.player_data.role == PlayerData.Role.TANK: output.append("P3_UR_FAILURE_WRONG_SLICE_TT")
-		return output
-	return []
+	
+	return output
 
 	
 func _get_laser_error_message(step_id: int, user_selection: Locator) -> Array[String]:
@@ -809,7 +822,7 @@ func _get_laser_error_message(step_id: int, user_selection: Locator) -> Array[St
 		else: return ["P3_UR_FAILURE_SECOND_BAIT_LASER_SWSE"]
 	elif step_id == Step.THIRD_BAITS:
 		if user_token.player_data.is_support: return ["P3_UR_FAILURE_THIRD_BAIT_LASER_W"]
-		else: return ["P3_UR_FAILURE_THIRD_BAIT_LASER_W"]
+		else: return ["P3_UR_FAILURE_THIRD_BAIT_LASER_E"]
 	
 	return []
 
