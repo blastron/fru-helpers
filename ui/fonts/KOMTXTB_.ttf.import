@@ -13,7 +13,7 @@ dest_files=["res://.godot/imported/KOMTXTB_.ttf-d3c024bff323375b61b6b02e2ff3f9fe
 [params]
 
 Rendering=null
-antialiasing=0
+antialiasing=1
 generate_mipmaps=false
 disable_embedded_bitmaps=true
 multichannel_signed_distance_field=false
