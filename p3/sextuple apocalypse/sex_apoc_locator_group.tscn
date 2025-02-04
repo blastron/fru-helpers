@@ -1,0 +1,76 @@
+[gd_scene load_steps=3 format=3 uid="uid://dvbn6iv7uh2jp"]
+
+[ext_resource type="Script" path="res://p3/sextuple apocalypse/sex_apoc_locator_group.gd" id="1_alg6i"]
+[ext_resource type="PackedScene" uid="uid://dwfl3kiyj4lvj" path="res://core/locators/locator.tscn" id="2_a0myd"]
+
+[node name="SexApocLocatorGroup" type="Node2D" node_paths=PackedStringArray("flare_locator", "eruption_in_center", "eruption_in_cw", "eruption_in_ccw", "eruption_out_cw", "eruption_out_ccw", "second_stack_in", "tank_bait", "boss_leap", "kb_origin_west", "kb_origin_east")]
+script = ExtResource("1_alg6i")
+flare_locator = NodePath("flare locator")
+eruption_in_center = NodePath("in center")
+eruption_in_cw = NodePath("in cw")
+eruption_in_ccw = NodePath("in ccw")
+eruption_out_cw = NodePath("out cw")
+eruption_out_ccw = NodePath("out ccw")
+second_stack_in = NodePath("second stack")
+tank_bait = NodePath("tank bait")
+boss_leap = NodePath("boss leap")
+kb_origin_west = NodePath("knockback west")
+kb_origin_east = NodePath("knockback east")
+
+[node name="out ccw" parent="." instance=ExtResource("2_a0myd")]
+offset_left = -60.0
+offset_top = -275.0
+offset_right = -59.0
+offset_bottom = -274.0
+
+[node name="out cw" parent="." instance=ExtResource("2_a0myd")]
+offset_left = 60.0
+offset_top = -275.0
+offset_right = 61.0
+offset_bottom = -274.0
+
+[node name="in center" parent="." instance=ExtResource("2_a0myd")]
+offset_top = -160.0
+offset_bottom = -159.0
+
+[node name="in ccw" parent="." instance=ExtResource("2_a0myd")]
+visible = false
+offset_left = -100.0
+offset_top = -125.0
+offset_right = -99.0
+offset_bottom = -124.0
+
+[node name="in cw" parent="." instance=ExtResource("2_a0myd")]
+visible = false
+offset_left = 100.0
+offset_top = -125.0
+offset_right = 101.0
+offset_bottom = -124.0
+
+[node name="second stack" parent="." instance=ExtResource("2_a0myd")]
+offset_top = -60.0
+offset_bottom = -59.0
+
+[node name="tank bait" parent="." instance=ExtResource("2_a0myd")]
+offset_top = -275.0
+offset_bottom = -274.0
+
+[node name="boss leap" parent="." instance=ExtResource("2_a0myd")]
+offset_top = -160.0
+offset_bottom = -159.0
+
+[node name="knockback west" parent="." instance=ExtResource("2_a0myd")]
+offset_left = -45.0
+offset_top = -115.0
+offset_right = -44.0
+offset_bottom = -114.0
+
+[node name="knockback east" parent="." instance=ExtResource("2_a0myd")]
+offset_left = 45.0
+offset_top = -115.0
+offset_right = 46.0
+offset_bottom = -114.0
+
+[node name="flare locator" parent="." instance=ExtResource("2_a0myd")]
+offset_top = -215.0
+offset_bottom = -214.0

@@ -115,6 +115,9 @@ var _movement_elapsed_time: float
 var _movement_total_time: float
 
 
+var _is_knockback: bool = false
+
+
 var current_locator: Locator:
 	get: return _current_locator
 var _current_locator: Locator
@@ -163,22 +166,34 @@ func _clear_locator() -> void:
 
 func teleport_to_position(new_position: Vector2) -> void:
 	_clear_locator()
+	_is_knockback = false
 	_teleport_to_position(new_position)
 
 	
 func move_to_position(new_position: Vector2, speed_override: float = -1) -> void:
 	_clear_locator()
+	_is_knockback = false
 	_move_to_position(new_position, speed_override)
 
 
 func teleport_to_locator(locator: Locator) -> void:
 	_set_locator(locator)
+	_is_knockback = false
 	_teleport_to_position(_get_locator_position())
 	
 
 func move_to_locator(locator: Locator, speed_override: float = -1) -> void:
 	_set_locator(locator)
+	_is_knockback = false
 	_move_to_position(_get_locator_position(), speed_override)
+
+
+func knockback(origin: Vector2, distance: float) -> void:
+	var direction: Vector2 = (position - origin).normalized()
+	var destination: Vector2 = position + direction * distance
+	
+	_is_knockback = true
+	_move_to_position(destination)
 
 
 func _get_locator_position() -> Vector2:
@@ -229,8 +244,12 @@ func _process_movement(delta: float) -> void:
 	_movement_elapsed_time += delta
 	if _movement_elapsed_time < _movement_total_time:
 		var elapsed_percent: float = _movement_elapsed_time / _movement_total_time
-		var eased_percent: float = ease(elapsed_percent, -2.0)
+		
+		var easing_curve: float = -2.0 if not _is_knockback else 0.3
+		var eased_percent: float = ease(elapsed_percent, easing_curve)
+		
 		position = _start_position.lerp(_end_position, eased_percent)
+		
 	else:
 		position = _end_position
 		_try_emit_completion()

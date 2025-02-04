@@ -152,6 +152,10 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 				jump_to_state(new_step, State.RESOLVING)
 			else:
 				print("Waiting on %d player movements for step %d..." % [total_moves, new_step])
+			
+				# Set a minimum amount of time for the player movement step.
+				wait_for_duration(0.5)
+			
 				finish_state()
 			
 		State.RESOLVING:
@@ -434,9 +438,18 @@ func _process_setup(step_id: int, substep_id: int, delta: float) -> void:
 ##########
 
 
-# Returns whether the user needs to make a decision on this step. Override this in your strat.
+# Returns whether the user needs to make a decision on this step. By default, returns true if there are locators for the
+#   player to click on.
 func _needs_user_decision(step_id: int) -> bool:
-	return false
+	return !_get_active_locators(step_id).is_empty()
+
+
+# Returns the list of locators that should be clickable in this step. Other locators will either be deactivated or
+#   hidden depending on their configuration.
+func _get_active_locators(step_id: int) -> Array[Locator]:
+	# Override this in your strat.
+	assert(false, "_get_active_locators() must be overridden in a strat.")
+	return []
 
 
 # Gets lists of valid locations that each player can move to. If a player either is not part of the output or if they
@@ -500,14 +513,6 @@ func _get_failure_hint_movements(step_id: int) -> Array[Locator]:
 ##########
 ## LOCATORS
 ##########
-
-
-# Returns the list of locators that should be clickable in this step. Other locators will either be deactivated or
-#   hidden depending on their configuration.
-func _get_active_locators(step_id: int) -> Array[Locator]:
-	# Override this in your strat.
-	assert(false, "_get_active_locators() must be overridden in a strat.")
-	return []
 
 
 # Activates the locators for the current step, as provided by get_active_locator_ids(). Returns whether any locators
@@ -686,7 +691,6 @@ func _upcast_player_tokens(tokens: Array[Token]) -> Array[PlayerToken]:
 	var upcast_tokens: Array[PlayerToken]
 	upcast_tokens.assign(tokens)
 	return upcast_tokens
-
 	
 	
 ##########

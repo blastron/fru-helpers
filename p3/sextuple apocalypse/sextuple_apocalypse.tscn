@@ -1,0 +1,194 @@
+[gd_scene load_steps=10 format=3 uid="uid://cghal6i1qi3vs"]
+
+[ext_resource type="Script" path="res://p3/sextuple apocalypse/sextuple_apocalypse.gd" id="1_e14di"]
+[ext_resource type="PackedScene" uid="uid://c70r3rornk6p0" path="res://p3/sextuple apocalypse/p3_arena_sextuple_apocalypse.tscn" id="2_adrkj"]
+[ext_resource type="PackedScene" uid="uid://thw6548celuv" path="res://p1/tokens/thancred.tscn" id="3_d6pui"]
+[ext_resource type="Script" path="res://core/buffs/buff_data.gd" id="3_mvbmf"]
+[ext_resource type="PackedScene" uid="uid://dvbn6iv7uh2jp" path="res://p3/sextuple apocalypse/sex_apoc_locator_group.tscn" id="5_kdf02"]
+[ext_resource type="Texture2D" uid="uid://dmiw5d4hudcgi" path="res://ui/strat_ui/party_list/buffs/p3/sw_water.png" id="10_jar38"]
+[ext_resource type="PackedScene" uid="uid://dwfl3kiyj4lvj" path="res://core/locators/locator.tscn" id="14_5r4tp"]
+[ext_resource type="PackedScene" uid="uid://dik1njrfehd1s" path="res://ui/strat_ui/strat_ui.tscn" id="16_t08r6"]
+
+[sub_resource type="Resource" id="Resource_2xrrf"]
+script = ExtResource("3_mvbmf")
+icon = ExtResource("10_jar38")
+
+[node name="SextupleApocalypse" type="Node2D" node_paths=PackedStringArray("boss", "locator_setup_W_NW", "locator_setup_W_NE", "locator_setup_W_SW", "locator_setup_W_SE", "locator_setup_E_NW", "locator_setup_E_NE", "locator_setup_E_SW", "locator_setup_E_SE", "locator_first_stack_W", "locator_first_stack_E", "locator_spirit_taker_W_NW", "locator_spirit_taker_W_NE", "locator_spirit_taker_W_SW", "locator_spirit_taker_W_SE", "locator_spirit_taker_E_NW", "locator_spirit_taker_E_NE", "locator_spirit_taker_E_SW", "locator_spirit_taker_E_SE", "slices", "__ui", "_arena")]
+script = ExtResource("1_e14di")
+boss = NodePath("P3Arena/background/token root/TEMP thancred")
+locator_setup_W_NW = NodePath("P3Arena/background/token root/setup markers/setup_w_nw")
+locator_setup_W_NE = NodePath("P3Arena/background/token root/setup markers/setup_w_ne")
+locator_setup_W_SW = NodePath("P3Arena/background/token root/setup markers/setup_w_sw")
+locator_setup_W_SE = NodePath("P3Arena/background/token root/setup markers/setup_w_se")
+locator_setup_E_NW = NodePath("P3Arena/background/token root/setup markers/setup_e_nw")
+locator_setup_E_NE = NodePath("P3Arena/background/token root/setup markers/setup_e_ne")
+locator_setup_E_SW = NodePath("P3Arena/background/token root/setup markers/setup_e_sw")
+locator_setup_E_SE = NodePath("P3Arena/background/token root/setup markers/setup_e_se")
+locator_first_stack_W = NodePath("P3Arena/background/token root/first stack locators/first_stack_w")
+locator_first_stack_E = NodePath("P3Arena/background/token root/first stack locators/first_stack_e")
+locator_spirit_taker_W_NW = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_w_nw")
+locator_spirit_taker_W_NE = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_w_ne")
+locator_spirit_taker_W_SW = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_w_sw")
+locator_spirit_taker_W_SE = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_w_se")
+locator_spirit_taker_E_NW = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_e_nw")
+locator_spirit_taker_E_NE = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_e_ne")
+locator_spirit_taker_E_SW = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_e_sw")
+locator_spirit_taker_E_SE = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_e_se")
+slices = [NodePath("P3Arena/background/token root/locator groups/group_nw"), NodePath("P3Arena/background/token root/locator groups/group_n"), NodePath("P3Arena/background/token root/locator groups/group_ne"), NodePath("P3Arena/background/token root/locator groups/group_e"), NodePath("P3Arena/background/token root/locator groups/group_se"), NodePath("P3Arena/background/token root/locator groups/group_s"), NodePath("P3Arena/background/token root/locator groups/group_sw"), NodePath("P3Arena/background/token root/locator groups/group_w")]
+_debuff_water = SubResource("Resource_2xrrf")
+__ui = NodePath("StratUi")
+_arena = NodePath("P3Arena")
+_title_key = "P3_SA_TITLE"
+
+[node name="P3Arena" parent="." instance=ExtResource("2_adrkj")]
+
+[node name="TEMP thancred" parent="P3Arena/background/token root" index="0" instance=ExtResource("3_d6pui")]
+position = Vector2(-1, 0)
+on_stage = true
+
+[node name="setup markers" type="Node2D" parent="P3Arena/background/token root" index="1"]
+visible = false
+
+[node name="setup_w_nw" parent="P3Arena/background/token root/setup markers" instance=ExtResource("14_5r4tp")]
+offset_left = -150.0
+offset_top = -25.0
+offset_right = -149.0
+offset_bottom = -24.0
+
+[node name="setup_w_ne" parent="P3Arena/background/token root/setup markers" instance=ExtResource("14_5r4tp")]
+offset_left = -100.0
+offset_top = -25.0
+offset_right = -99.0
+offset_bottom = -24.0
+
+[node name="setup_w_sw" parent="P3Arena/background/token root/setup markers" instance=ExtResource("14_5r4tp")]
+offset_left = -150.0
+offset_top = 25.0
+offset_right = -149.0
+offset_bottom = 26.0
+
+[node name="setup_w_se" parent="P3Arena/background/token root/setup markers" instance=ExtResource("14_5r4tp")]
+offset_left = -100.0
+offset_top = 25.0
+offset_right = -99.0
+offset_bottom = 26.0
+
+[node name="setup_e_nw" parent="P3Arena/background/token root/setup markers" instance=ExtResource("14_5r4tp")]
+offset_left = 100.0
+offset_top = -25.0
+offset_right = 101.0
+offset_bottom = -24.0
+
+[node name="setup_e_ne" parent="P3Arena/background/token root/setup markers" instance=ExtResource("14_5r4tp")]
+offset_left = 150.0
+offset_top = -25.0
+offset_right = 151.0
+offset_bottom = -24.0
+
+[node name="setup_e_sw" parent="P3Arena/background/token root/setup markers" instance=ExtResource("14_5r4tp")]
+offset_left = 100.0
+offset_top = 25.0
+offset_right = 101.0
+offset_bottom = 26.0
+
+[node name="setup_e_se" parent="P3Arena/background/token root/setup markers" instance=ExtResource("14_5r4tp")]
+offset_left = 150.0
+offset_top = 25.0
+offset_right = 151.0
+offset_bottom = 26.0
+
+[node name="first stack locators" type="Node2D" parent="P3Arena/background/token root" index="2"]
+visible = false
+
+[node name="first_stack_w" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
+offset_left = -125.0
+offset_right = -124.0
+crowd_spacing = 15.0
+
+[node name="first_stack_e" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
+offset_left = 125.0
+offset_right = 126.0
+crowd_spacing = 15.0
+
+[node name="spirit taker locators" type="Node2D" parent="P3Arena/background/token root" index="3"]
+visible = false
+
+[node name="spirit_taker_w_nw" parent="P3Arena/background/token root/spirit taker locators" instance=ExtResource("14_5r4tp")]
+offset_left = -225.0
+offset_top = -75.0
+offset_right = -224.0
+offset_bottom = -74.0
+
+[node name="spirit_taker_w_ne" parent="P3Arena/background/token root/spirit taker locators" instance=ExtResource("14_5r4tp")]
+offset_left = -75.0
+offset_top = -75.0
+offset_right = -74.0
+offset_bottom = -74.0
+
+[node name="spirit_taker_w_sw" parent="P3Arena/background/token root/spirit taker locators" instance=ExtResource("14_5r4tp")]
+offset_left = -225.0
+offset_top = 75.0
+offset_right = -224.0
+offset_bottom = 76.0
+
+[node name="spirit_taker_w_se" parent="P3Arena/background/token root/spirit taker locators" instance=ExtResource("14_5r4tp")]
+offset_left = -75.0
+offset_top = 75.0
+offset_right = -74.0
+offset_bottom = 76.0
+
+[node name="spirit_taker_e_nw" parent="P3Arena/background/token root/spirit taker locators" instance=ExtResource("14_5r4tp")]
+offset_left = 75.0
+offset_top = -75.0
+offset_right = 76.0
+offset_bottom = -74.0
+
+[node name="spirit_taker_e_ne" parent="P3Arena/background/token root/spirit taker locators" instance=ExtResource("14_5r4tp")]
+offset_left = 225.0
+offset_top = -75.0
+offset_right = 226.0
+offset_bottom = -74.0
+
+[node name="spirit_taker_e_sw" parent="P3Arena/background/token root/spirit taker locators" instance=ExtResource("14_5r4tp")]
+offset_left = 75.0
+offset_top = 75.0
+offset_right = 76.0
+offset_bottom = 76.0
+
+[node name="spirit_taker_e_se" parent="P3Arena/background/token root/spirit taker locators" instance=ExtResource("14_5r4tp")]
+offset_left = 225.0
+offset_top = 75.0
+offset_right = 226.0
+offset_bottom = 76.0
+
+[node name="locator groups" type="Node2D" parent="P3Arena/background/token root" index="4"]
+
+[node name="group_n" parent="P3Arena/background/token root/locator groups" instance=ExtResource("5_kdf02")]
+
+[node name="group_ne" parent="P3Arena/background/token root/locator groups" instance=ExtResource("5_kdf02")]
+rotation = 0.785398
+
+[node name="group_e" parent="P3Arena/background/token root/locator groups" instance=ExtResource("5_kdf02")]
+rotation = 1.5708
+
+[node name="group_se" parent="P3Arena/background/token root/locator groups" instance=ExtResource("5_kdf02")]
+rotation = 2.35619
+
+[node name="group_s" parent="P3Arena/background/token root/locator groups" instance=ExtResource("5_kdf02")]
+rotation = 3.14159
+
+[node name="group_sw" parent="P3Arena/background/token root/locator groups" instance=ExtResource("5_kdf02")]
+rotation = 3.92699
+
+[node name="group_w" parent="P3Arena/background/token root/locator groups" instance=ExtResource("5_kdf02")]
+rotation = 4.71239
+
+[node name="group_nw" parent="P3Arena/background/token root/locator groups" instance=ExtResource("5_kdf02")]
+rotation = 5.49779
+
+[node name="measurement" type="Node2D" parent="P3Arena/background/token root" index="5"]
+position = Vector2(143, 0)
+
+[node name="StratUi" parent="." instance=ExtResource("16_t08r6")]
+
+[editable path="P3Arena"]

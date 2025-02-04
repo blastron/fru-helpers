@@ -5,7 +5,18 @@ var _border: Line2D
 var _background: Polygon2D
 
 
-const _background_opacity: float = 0.5
+var border_opacity: float = 1:
+	get: return border_opacity
+	set(value):
+		border_opacity = value
+		if _border: _border.default_color.a = _color.a * _alpha * border_opacity
+
+
+var background_opacity: float = 0.5:
+	get: return background_opacity
+	set(value):
+		background_opacity = value
+		if _background: _background.color.a = _color.a * _alpha * background_opacity
 
 
 # The color of the indicator. If this color has an alpha value, it will be multiplied by _alpha.
@@ -13,10 +24,13 @@ const _background_opacity: float = 0.5
 	get: return _color
 	set(value):
 		_color = value
-		if _border: _border.default_color = _color
+		if _border:
+			_border.default_color = _color
+			_border.default_color.a *= border_opacity
+			
 		if _background:
 			_background.color = _color
-			_background.color.a *= _background_opacity
+			_background.color.a *= background_opacity
 
 
 func _init(color: Color) -> void:
@@ -34,5 +48,5 @@ func _init(color: Color) -> void:
 
 
 func _update_alpha() -> void:
-	if _border: _border.default_color.a = _color.a * _alpha
-	if _background: _background.color.a = _color.a * _alpha * _background_opacity
+	if _border: _border.default_color.a = _color.a * _alpha * border_opacity
+	if _background: _background.color.a = _color.a * _alpha * background_opacity

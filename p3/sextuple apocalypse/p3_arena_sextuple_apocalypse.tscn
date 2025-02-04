@@ -1,0 +1,42 @@
+[gd_scene load_steps=6 format=3 uid="uid://c70r3rornk6p0"]
+
+[ext_resource type="Script" path="res://p3/sextuple apocalypse/p3_arena_sextuple_apocalypse.gd" id="1_si24y"]
+[ext_resource type="PackedScene" uid="uid://kiocqomkwe8n" path="res://core/tokens/player/player_token.tscn" id="2_edqsw"]
+[ext_resource type="Texture2D" uid="uid://dt1gx3mgukk7e" path="res://p3/sextuple apocalypse/p3_arena_sextuple_apocalypse.png" id="3_hcbul"]
+[ext_resource type="Texture2D" uid="uid://cspbdujusqcm2" path="res://p3/p3_arena_idle.png" id="3_jrxda"]
+[ext_resource type="Texture2D" uid="uid://cpkf77iny2tur" path="res://core/temp_markers.png" id="5_6cvsg"]
+
+[node name="P3Arena" type="CanvasLayer" node_paths=PackedStringArray("_sa_floor", "_root")]
+script = ExtResource("1_si24y")
+_sa_floor = NodePath("background/SA arena")
+_root = NodePath("background/token root")
+_player_token_type = ExtResource("2_edqsw")
+
+[node name="background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+color = Color(0.203, 0.25085, 0.29, 1)
+
+[node name="base arena" type="Sprite2D" parent="background"]
+position = Vector2(480, 360)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("3_jrxda")
+
+[node name="SA arena" type="Sprite2D" parent="background"]
+position = Vector2(480, 360)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("3_hcbul")
+
+[node name="markers" type="Sprite2D" parent="background"]
+modulate = Color(1, 1, 1, 0.866667)
+position = Vector2(480, 360)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("5_6cvsg")
+
+[node name="token root" type="Node2D" parent="background"]
+position = Vector2(480, 360)

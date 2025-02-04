@@ -53,6 +53,22 @@ mouse_default_cursor_shape = 2
 text = "ultimate
 relativity"
 
+[node name="p3 - sextuple apocalypse" type="Button" parent="p3"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 538.0
+offset_top = 457.0
+offset_right = -528.0
+offset_bottom = -205.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 0.0357833
+focus_mode = 0
+mouse_default_cursor_shape = 2
+text = "sextuple
+apocalypse"
+
 [node name="settings button" type="Button" parent="."]
 anchors_preset = 15
 anchor_right = 1.0

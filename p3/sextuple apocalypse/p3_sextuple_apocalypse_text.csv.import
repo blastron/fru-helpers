@@ -1,0 +1,17 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://d3vd8r70vgx3w"
+
+[deps]
+
+files=["res://p3/sextuple apocalypse/p3_sextuple_apocalypse_text.en.translation"]
+
+source_file="res://p3/sextuple apocalypse/p3_sextuple_apocalypse_text.csv"
+dest_files=["res://p3/sextuple apocalypse/p3_sextuple_apocalypse_text.en.translation"]
+
+[params]
+
+compress=true
+delimiter=0

@@ -1,10 +1,12 @@
 class_name UrLocatorGroup extends Node2D
 
+
 @export var fire_bait: Locator
 @export var cw_line_bait: Locator
 @export var ccw_line_bait: Locator
 @export var eruption_bait: Locator
 @export var center_bait: Locator
+
 
 @export var final_safety_spot: Locator
 
