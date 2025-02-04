@@ -51,8 +51,9 @@ const _tag_group_dps: String = "group_dps"
 const _tag_spirit_taker: String = "spirit_taker"
 
 
-const _burst_flare_color: Color = Color(1.0, 1.0, 1.0, 0.75)
-const _burst_marker_color: Color = Color(1.0, 1.0, 1.0, 0.5)
+const _apoc_flash_color: Color = Color(1.0, 1.0, 1.0, 0.5)
+const _apoc_marker_color: Color = Color(1.0, 1.0, 1.0, 0.5)
+const _apoc_explosion_color: Color = Color(1.0, 1.0, 1.0, 0.75)
 
 const _stage_transition_color: Color = Color(0.42745098, 0.43529412, 0.8039216)
 
@@ -143,20 +144,16 @@ func _enter_setup(step_id: int, substep_id: int) -> void:
 			finish_state()
 
 		Step.DETERMINE_SAFE_SPOT:
-			match substep_id:
-				0:
-					# Set initial variables.
-					_apoc_origin = randi_range(0, 3)
-					_clockwise = randi_range(0, 1)
-		
-					# Drop marker puddles at the starting locations.
-					_place_apoc_setup_markers(0)
-					wait_for_duration(1)
-					
-					finish_state()
-				
-				1: # TODO: Spin the first markers halfway.
-					pass
+			# Set initial variables.
+			_apoc_origin = randi_range(0, 3)
+			_clockwise = randi_range(0, 1)
+
+			# Drop marker puddles at the starting locations.
+			_place_apoc_setup_markers(0, true)
+			_cast_arena.cap_tracer_progress(0.5)
+			wait_for_duration(1)
+			
+			finish_state()
 			
 		# No more setup! Everything else is handled in resolution.
 		
@@ -199,27 +196,33 @@ func _get_apoc_indices_for_step(apoc_step: int) -> Array[int]:
 	return output
 
 
-func _place_apoc_setup_markers(apoc_step: int):
+func _place_apoc_setup_markers(apoc_step: int, add_tracers: bool):
 	var step_slice_indices: Array[int] = _get_apoc_indices_for_step(apoc_step)
 	
 	for slice_index in step_slice_indices:
 		var location: Vector2
 		if slice_index == -1:
 			location = Vector2(0, 0)
+		
+			if add_tracers:
+				var root_rotation: float = slices[_apoc_origin].rotation
+				_cast_arena.add_tracer(root_rotation, false, _clockwise)
+				_cast_arena.add_tracer(root_rotation + PI, false, _clockwise)
 		else:
 			location = slices[slice_index].flare_locator.position
 		
-		var flare: Circle = _arena.add_circle_indicator("apoc flare", 25, false, _burst_flare_color)
+			if add_tracers:
+				_cast_arena.add_tracer(slices[slice_index].rotation, true, _clockwise)
+		
+		var flare: Circle = _arena.add_circle_indicator("apoc flare", 20, false, _apoc_flash_color)
 		flare.background_opacity = 1
 		flare.position = location
 		flare.fade_out(1)
-		
-		var marker_name: String = "apoc marker %d" % slice_index
-		if _arena.get_indicator(marker_name) == null:
-			var marker: Circle = _arena.add_circle_indicator(marker_name, 15, false, _burst_marker_color)
-			marker.border_opacity = 0
-			marker.background_opacity = 1
-			marker.position = location
+
+
+func _clear_apoc_setup_marker(slice_index: int) -> void:
+	var marker: Indicator = _arena.get_indicator("apoc marker %d" % slice_index)
+	if marker: _arena.remove_indicator(marker)
 
 
 func _get_default_setup_locator(player: PlayerToken) -> Locator:
@@ -227,8 +230,8 @@ func _get_default_setup_locator(player: PlayerToken) -> Locator:
 	match player.player_data.role:
 		PlayerData.Role.HEALER: return locator_setup_W_NW if is_g1 else locator_setup_W_SW
 		PlayerData.Role.TANK: return locator_setup_W_NE if is_g1 else locator_setup_W_SE
-		PlayerData.Role.MELEE: return locator_setup_E_NW if is_g1 else locator_setup_E_SW
-		PlayerData.Role.RANGED: return locator_setup_E_NE if is_g1 else locator_setup_E_SE
+		PlayerData.Role.MELEE: return locator_setup_E_SW if is_g1 else locator_setup_E_NW
+		PlayerData.Role.RANGED: return locator_setup_E_SE if is_g1 else locator_setup_E_NE
 		_: return null
 
 
@@ -239,8 +242,7 @@ func _get_default_spirit_taker_locator(player: PlayerToken) -> Locator:
 		PlayerData.Role.TANK: return locator_spirit_taker_W_NE if is_g1 else locator_spirit_taker_W_SE
 		PlayerData.Role.MELEE: return locator_spirit_taker_E_SW if is_g1 else locator_spirit_taker_E_NW
 		PlayerData.Role.RANGED: return locator_spirit_taker_E_SE if is_g1 else locator_spirit_taker_E_NE
-		_: return null
-	
+		_: return null	
 
 
 ##########
@@ -511,24 +513,32 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 							player.player_data.remove_buff(_debuff_water)
 							_handle_water_stack(player)
 			
-					wait_for_duration(0.5)
+					_cast_arena.uncap_tracer_progress()
+					wait_for_duration(0.75)
 					finish_substep()
 		
 				1:
-					_place_apoc_setup_markers(1)
-					wait_for_duration(1)
+					_place_apoc_setup_markers(1, true)
+					_cast_arena.cap_tracer_progress(0.5)
+			
+					wait_for_duration(0.75)
 					finish_state()
 					
 					
 		Step.SPIRIT_TAKER:
 			match substep_id:
 				0:
+					_cast_arena.uncap_tracer_progress()
+					wait_for_duration(0.75)
+
+					finish_substep()
+				1:
 					# Drop the third step of apoc markers.
-					_place_apoc_setup_markers(2)
+					_place_apoc_setup_markers(2, true)
 					wait_for_duration(0.5)
 				
 					finish_substep()
-				1:
+				2:
 					# Pick a random person for Spirit Taker and have the boss move to them.
 					var taker_player: PlayerToken = player_tokens[randi_range(0, 7)]
 					taker_player.add_tag(_tag_spirit_taker)
@@ -538,23 +548,23 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 					wait_for_duration(0.25)
 					
 					finish_substep()
-				2:
+				3:
 					var taker_player: PlayerToken = find_token_by_tag(_tag_spirit_taker)
 					_handle_spirit_taker(taker_player)
 					wait_for_duration(0.75)
 
 					finish_substep()
 					
-				3:
+				4:
 					# Pop off the stage to recenter.
 					boss.on_stage = false
 			
 					# Drop the fourth set of apoc markers.
-					_place_apoc_setup_markers(3)
+					_place_apoc_setup_markers(3, true)
 					wait_for_duration(0.25)
 			
 					finish_substep()
-				4:
+				5:
 					# Pop back on.
 					boss.teleport_to_position(Vector2(0, 0))
 					boss.face_direction(PI / 2)
@@ -563,47 +573,69 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 					# Wait for a lengthy bit to give the apoc markers time to tick.
 					wait_for_duration(1.25)
 					finish_substep()
-				5:
+				6:
 					# Drop the fifth set of apoc markers.
-					_place_apoc_setup_markers(4)
-					wait_for_duration(0.5)
-			
+					_place_apoc_setup_markers(4, true)
+					_cast_arena.cap_tracer_progress(0.5)
+					wait_for_duration(0.75)
 					finish_state()
-			
+					
+		
 		Step.ERUPTION:
 			match substep_id:
 				0:
-					# Place the last set of apoc markers.
-					_place_apoc_setup_markers(5)
-					wait_for_duration(1.5)
+					_cast_arena.uncap_tracer_progress()
+					wait_for_duration(0.75)
 					finish_substep()
 				1:
+					_place_apoc_setup_markers(5, false)
+					wait_for_duration(1.5)
+					finish_substep()
+				2:
 					# Handle the first apocalypse explosions.
 					_handle_apocalypse(0)
 					wait_for_duration(1.5)
 					finish_substep()
-				2:
+				3:
 					# Handle the second apocalypse explosions.
-					_handle_apocalypse(0)
+					_handle_apocalypse(1)
 					wait_for_duration(0.75)
 					finish_substep()
-				3:
+				4:
 					# Detonate eruptions on all players.
 					for player in player_tokens:
 						_handle_eruption(player)
 					wait_for_duration(0.75)
 					finish_state()
-			
+		
+		
 		Step.SECOND_STACK:
-			_decrement_debuffs(19) # TEMP: split this up
-			for player in player_tokens:
-				if player.player_data.get_buff_duration(_debuff_water) == 0:
-					player.player_data.remove_buff(_debuff_water)
-					_handle_water_stack(player)
-			wait_for_duration(1)
-			finish_state()
-			
-			
+			match substep_id:
+				0:
+					_handle_apocalypse(2)
+					wait_for_duration(1.5)
+					finish_substep()
+				1:
+					_handle_apocalypse(3)
+					wait_for_duration(1.5)
+					finish_substep()
+				2:
+					_handle_apocalypse(4)
+					wait_for_duration(0.75)
+					finish_substep()
+				3:
+					_decrement_debuffs(19) # TEMP: split this up
+					for player in player_tokens:
+						if player.player_data.get_buff_duration(_debuff_water) == 0:
+							player.player_data.remove_buff(_debuff_water)
+							_handle_water_stack(player)
+					wait_for_duration(1)
+					finish_substep()
+				4:
+					_handle_apocalypse(5)
+					wait_for_duration(1.5)
+					finish_state()
+					
 		Step.DARKEST_DANCE:
 			var t2: PlayerToken = get_player_token(PlayerData.Role.TANK, PlayerData.Group.GROUP_TWO)
 			match substep_id:
@@ -619,9 +651,21 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 					boss.move_to_locator(t2_slice.boss_leap)
 					
 					finish_substep()
-			
 				1:
 					_handle_darkest_dance(t2)
+					finish_substep()
+				2:
+					var transition_marker: Circle = \
+					_arena.add_circle_indicator("transition", 300, false, _stage_transition_color)
+					transition_marker.border_opacity = 0
+					transition_marker.background_opacity = 0.25
+					wait_for_fade_in(transition_marker, 0.5)
+	
+					_cast_arena.sa_mode = false
+					finish_substep()
+				3:
+					var transition_marker: Circle = _arena.get_indicator("transition")
+					wait_for_fade_out(transition_marker, 0.5)
 					finish_state()
 	
 		Step.KNOCKBACK:
@@ -666,7 +710,7 @@ func _handle_apocalypse(apoc_step: int) -> void:
 		else:
 			location = slices[slice_index].flare_locator.position
 		
-		var circle_indicator: Circle = _arena.add_circle_indicator("water", 145, false, _water_puddle_color)
+		var circle_indicator: Circle = _arena.add_circle_indicator("apoc", 145, false, _apoc_explosion_color)
 		circle_indicator.position = location
 		circle_indicator.fade_out(1)
 
