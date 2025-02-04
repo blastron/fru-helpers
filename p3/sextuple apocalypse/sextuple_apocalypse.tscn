@@ -13,7 +13,7 @@
 script = ExtResource("3_mvbmf")
 icon = ExtResource("10_jar38")
 
-[node name="SextupleApocalypse" type="Node2D" node_paths=PackedStringArray("boss", "locator_setup_W_NW", "locator_setup_W_NE", "locator_setup_W_SW", "locator_setup_W_SE", "locator_setup_E_NW", "locator_setup_E_NE", "locator_setup_E_SW", "locator_setup_E_SE", "locator_first_stack_W", "locator_first_stack_E", "locator_spirit_taker_W_NW", "locator_spirit_taker_W_NE", "locator_spirit_taker_W_SW", "locator_spirit_taker_W_SE", "locator_spirit_taker_E_NW", "locator_spirit_taker_E_NE", "locator_spirit_taker_E_SW", "locator_spirit_taker_E_SE", "slices", "__ui", "_arena")]
+[node name="SextupleApocalypse" type="Node2D" node_paths=PackedStringArray("boss", "locator_setup_W_NW", "locator_setup_W_NE", "locator_setup_W_SW", "locator_setup_W_SE", "locator_setup_E_NW", "locator_setup_E_NE", "locator_setup_E_SW", "locator_setup_E_SE", "locator_first_stack_W", "locator_first_stack_E", "locator_first_stack_W_NW", "locator_first_stack_W_NE", "locator_first_stack_W_SW", "locator_first_stack_W_SE", "locator_first_stack_E_NW", "locator_first_stack_E_NE", "locator_first_stack_E_SW", "locator_first_stack_E_SE", "locator_spirit_taker_W_NW", "locator_spirit_taker_W_NE", "locator_spirit_taker_W_SW", "locator_spirit_taker_W_SE", "locator_spirit_taker_E_NW", "locator_spirit_taker_E_NE", "locator_spirit_taker_E_SW", "locator_spirit_taker_E_SE", "slices", "__ui", "_arena")]
 script = ExtResource("1_e14di")
 boss = NodePath("P3Arena/background/token root/TEMP thancred")
 locator_setup_W_NW = NodePath("P3Arena/background/token root/setup markers/setup_w_nw")
@@ -26,6 +26,14 @@ locator_setup_E_SW = NodePath("P3Arena/background/token root/setup markers/setup
 locator_setup_E_SE = NodePath("P3Arena/background/token root/setup markers/setup_e_se")
 locator_first_stack_W = NodePath("P3Arena/background/token root/first stack locators/first_stack_w")
 locator_first_stack_E = NodePath("P3Arena/background/token root/first stack locators/first_stack_e")
+locator_first_stack_W_NW = NodePath("P3Arena/background/token root/first stack locators/first_stack_w_nw")
+locator_first_stack_W_NE = NodePath("P3Arena/background/token root/first stack locators/first_stack_w_ne")
+locator_first_stack_W_SW = NodePath("P3Arena/background/token root/first stack locators/first_stack_w_sw")
+locator_first_stack_W_SE = NodePath("P3Arena/background/token root/first stack locators/first_stack_w_se")
+locator_first_stack_E_NW = NodePath("P3Arena/background/token root/first stack locators/first_stack_e_nw")
+locator_first_stack_E_NE = NodePath("P3Arena/background/token root/first stack locators/first_stack_e_ne")
+locator_first_stack_E_SW = NodePath("P3Arena/background/token root/first stack locators/first_stack_e_sw")
+locator_first_stack_E_SE = NodePath("P3Arena/background/token root/first stack locators/first_stack_e_se")
 locator_spirit_taker_W_NW = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_w_nw")
 locator_spirit_taker_W_NE = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_w_ne")
 locator_spirit_taker_W_SW = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_w_sw")
@@ -98,7 +106,54 @@ offset_right = 151.0
 offset_bottom = 26.0
 
 [node name="first stack locators" type="Node2D" parent="P3Arena/background/token root" index="2"]
-visible = false
+
+[node name="first_stack_w_nw" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
+offset_left = -142.0
+offset_top = -17.0
+offset_right = -141.0
+offset_bottom = -16.0
+
+[node name="first_stack_w_ne" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
+offset_left = -108.0
+offset_top = -17.0
+offset_right = -107.0
+offset_bottom = -16.0
+
+[node name="first_stack_w_sw" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
+offset_left = -142.0
+offset_top = 17.0
+offset_right = -141.0
+offset_bottom = 18.0
+
+[node name="first_stack_w_se" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
+offset_left = -108.0
+offset_top = 17.0
+offset_right = -107.0
+offset_bottom = 18.0
+
+[node name="first_stack_e_nw" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
+offset_left = 108.0
+offset_top = -17.0
+offset_right = 109.0
+offset_bottom = -16.0
+
+[node name="first_stack_e_ne" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
+offset_left = 142.0
+offset_top = -17.0
+offset_right = 143.0
+offset_bottom = -16.0
+
+[node name="first_stack_e_sw" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
+offset_left = 108.0
+offset_top = 17.0
+offset_right = 109.0
+offset_bottom = 18.0
+
+[node name="first_stack_e_se" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
+offset_left = 143.0
+offset_top = 17.0
+offset_right = 144.0
+offset_bottom = 18.0
 
 [node name="first_stack_w" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
 offset_left = -125.0
@@ -162,6 +217,7 @@ offset_right = 226.0
 offset_bottom = 76.0
 
 [node name="locator groups" type="Node2D" parent="P3Arena/background/token root" index="4"]
+visible = false
 
 [node name="group_n" parent="P3Arena/background/token root/locator groups" instance=ExtResource("5_kdf02")]
 

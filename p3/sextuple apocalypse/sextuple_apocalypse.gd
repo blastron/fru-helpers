@@ -16,8 +16,20 @@ class_name SextupleApocalypse extends Strat
 @export var locator_setup_E_SW: Locator
 @export var locator_setup_E_SE: Locator
 
+
+@export_group("Stacks")
 @export var locator_first_stack_W: Locator
 @export var locator_first_stack_E: Locator
+
+@export var locator_first_stack_W_NW: Locator
+@export var locator_first_stack_W_NE: Locator
+@export var locator_first_stack_W_SW: Locator
+@export var locator_first_stack_W_SE: Locator
+
+@export var locator_first_stack_E_NW: Locator
+@export var locator_first_stack_E_NE: Locator
+@export var locator_first_stack_E_SW: Locator
+@export var locator_first_stack_E_SE: Locator
 
 
 @export_group("Locators - Spirit Taker")
@@ -220,11 +232,6 @@ func _place_apoc_setup_markers(apoc_step: int, add_tracers: bool):
 		flare.fade_out(1)
 
 
-func _clear_apoc_setup_marker(slice_index: int) -> void:
-	var marker: Indicator = _arena.get_indicator("apoc marker %d" % slice_index)
-	if marker: _arena.remove_indicator(marker)
-
-
 func _get_default_setup_locator(player: PlayerToken) -> Locator:
 	var is_g1: bool = player.player_data.group == PlayerData.Group.GROUP_ONE
 	match player.player_data.role:
@@ -233,16 +240,30 @@ func _get_default_setup_locator(player: PlayerToken) -> Locator:
 		PlayerData.Role.MELEE: return locator_setup_E_SW if is_g1 else locator_setup_E_NW
 		PlayerData.Role.RANGED: return locator_setup_E_SE if is_g1 else locator_setup_E_NE
 		_: return null
+		
 
-
-func _get_default_spirit_taker_locator(player: PlayerToken) -> Locator:
-	var is_g1: bool = player.player_data.group == PlayerData.Group.GROUP_ONE
-	match player.player_data.role:
-		PlayerData.Role.HEALER: return locator_spirit_taker_W_NW if is_g1 else locator_spirit_taker_W_SW
-		PlayerData.Role.TANK: return locator_spirit_taker_W_NE if is_g1 else locator_spirit_taker_W_SE
-		PlayerData.Role.MELEE: return locator_spirit_taker_E_SW if is_g1 else locator_spirit_taker_E_NW
-		PlayerData.Role.RANGED: return locator_spirit_taker_E_SE if is_g1 else locator_spirit_taker_E_NE
-		_: return null	
+func _get_stack_locator_for_setup_locator(setup_locator: Locator) -> Locator:
+	if setup_locator == locator_setup_W_NW: return locator_first_stack_W_NW
+	if setup_locator == locator_setup_W_NE: return locator_first_stack_W_NE
+	if setup_locator == locator_setup_W_SW: return locator_first_stack_W_SW
+	if setup_locator == locator_setup_W_SE: return locator_first_stack_W_SE
+	if setup_locator == locator_setup_E_NW: return locator_first_stack_E_NW
+	if setup_locator == locator_setup_E_NE: return locator_first_stack_E_NE
+	if setup_locator == locator_setup_E_SW: return locator_first_stack_E_SW
+	if setup_locator == locator_setup_E_SE: return locator_first_stack_E_SE
+	return null
+		
+	
+func _get_spirit_taker_locator_for_stack_locator(setup_locator: Locator) -> Locator:
+	if setup_locator == locator_first_stack_W_NW: return locator_spirit_taker_W_NW
+	if setup_locator == locator_first_stack_W_NE: return locator_spirit_taker_W_NE
+	if setup_locator == locator_first_stack_W_SW: return locator_spirit_taker_W_SW
+	if setup_locator == locator_first_stack_W_SE: return locator_spirit_taker_W_SE
+	if setup_locator == locator_first_stack_E_NW: return locator_spirit_taker_E_NW
+	if setup_locator == locator_first_stack_E_NE: return locator_spirit_taker_E_NE
+	if setup_locator == locator_first_stack_E_SW: return locator_spirit_taker_E_SW
+	if setup_locator == locator_first_stack_E_SE: return locator_spirit_taker_E_SE
+	return null
 
 
 ##########
@@ -341,12 +362,12 @@ func _get_valid_movements(step_id: int) -> Dictionary:
 		Step.TIMER_ASSIGNMENTS_AND_SWAP:
 			if _mode == Mode.EXPLANATION:
 				# In explainer mode, we want to show arrows indicating who swaps to where, so we run that logic here.
-				return _get_swapped_spots(step_id)
+				return _get_swapped_setup_spots()
 				
 			else:
 				# When not explaining, we only show users two locators to click on, so as to focus on letting them
 				#   determine whether or not to swap. We'll send them to the correct location after they've made their
-				#   choice.
+				#   choice, in _get_actual_movements().
 				var output: Dictionary
 				for player in player_tokens:
 					if player.has_tag(_tag_group_support): output[player] = [locator_first_stack_W]
@@ -354,8 +375,9 @@ func _get_valid_movements(step_id: int) -> Dictionary:
 				return output
 		
 		Step.FIRST_STACK:
-			# All players condense into their stacks. This step is only reached in explainer mode; when the user is in
-			#   control, they've already clicked on the stack they should go to, so this is redundant.
+			# All players condense into their stacks. Here, we're once again returning the center stack locator for the
+			#   user to click on, rather than the individual markers, since the important thing is to teach the user to
+			#   stack up at this point.
 			var output: Dictionary
 			for player in player_tokens:
 				if player.has_tag(_tag_group_support): output[player] = [locator_first_stack_W]
@@ -363,8 +385,11 @@ func _get_valid_movements(step_id: int) -> Dictionary:
 			return output
 			
 		Step.SPIRIT_TAKER:
-			# Send players to either their default or swapped spots.
-			return _get_swapped_spots(step_id)
+			# Send players to either their default or swapped spots. They should already be at a stack locator.
+			var output: Dictionary
+			for player in player_tokens:
+				output[player] = [_get_spirit_taker_locator_for_stack_locator(player.current_locator)]
+			return output
 	
 		Step.ERUPTION:
 			var output: Dictionary
@@ -441,9 +466,33 @@ func _get_valid_movements(step_id: int) -> Dictionary:
 			return output
 
 	return {}
+
+
+func _get_actual_movements(step_id: int, user_selection: Locator) -> Dictionary:
+	match step_id:
+		Step.TIMER_ASSIGNMENTS_AND_SWAP:
+			# Return the post-swap setup spots. We're overriding this here because _get_valid_movements() will have
+			#   returned the center stack marker for the player to click on, but we want to send them to the correct
+			#   spot.
+			var output: Dictionary
+			var swapped_setup_spots: Dictionary = _get_swapped_setup_spots()
+			for player in player_tokens:
+				output[player] = swapped_setup_spots[player][0]
+			return output
+		
+		Step.FIRST_STACK:
+			# Move the players to the stack locator corresponding to their setup spots. It is assumed that the players
+			#   are already on setup locators. We're overriding this here because, as above, we originally returned a
+			#   convenience-only locator for UX purposes.
+			var output: Dictionary
+			for player in player_tokens:
+				output[player] = _get_stack_locator_for_setup_locator(player.current_locator)
+			return output
+	
+	return super._get_actual_movements(step_id, user_selection)
 	
 	
-func _get_swapped_spots(step: int) -> Dictionary:
+func _get_swapped_setup_spots() -> Dictionary:
 	var output: Dictionary
 
 	# First, go through the list of players, figure out where they would go if they didn't have to swap, and either
@@ -451,8 +500,7 @@ func _get_swapped_spots(step: int) -> Dictionary:
 	var empty_support_spots: Array[Locator]
 	var empty_dps_spots: Array[Locator]
 	for player in player_tokens:
-		var default_spot: Locator = _get_default_setup_locator(player) if step == Step.TIMER_ASSIGNMENTS_AND_SWAP else \
-			_get_default_spirit_taker_locator(player)
+		var default_spot: Locator = _get_default_setup_locator(player)
 		if player.player_data.is_support:
 			if player.has_tag(_tag_group_support): output[player] = [default_spot]
 			else: empty_support_spots.append(default_spot)
@@ -461,12 +509,20 @@ func _get_swapped_spots(step: int) -> Dictionary:
 			else: empty_dps_spots.append(default_spot)
 			
 	# Now, if any players have not been assigned spots, indicate that they can go to any of the spots that are free.
-	#   If there are multiple free spots, return them all; the swapped players are expected to use their eyes to avoid
-	#   running into each other.
+	#   If there are multiple free spots, assign one to each player. It doesn't matter which; it's assumed that players
+	#   will use their eyes and pick an empty spot.
 	for player in player_tokens:
 		if output.has(player): continue
-		elif player.player_data.is_support: output[player] = empty_dps_spots
-		else: output[player] = empty_support_spots
+		elif player.player_data.is_support:
+			if len(empty_dps_spots) == 1: output[player] = empty_dps_spots
+			else:
+				output[player] = [empty_dps_spots[0]]
+				empty_dps_spots.remove_at(0)
+		else:
+			if len(empty_support_spots) == 1: output[player] = empty_support_spots
+			else:
+				output[player] = [empty_support_spots[0]]
+				empty_support_spots.remove_at(0)
 		
 	return output
 
