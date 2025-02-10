@@ -155,7 +155,7 @@ var _indicators: Array[Indicator]
 
 # Registers an indicator and sets its Z-order.
 func _register_indicator(indicator: Indicator) -> void:
-	print("ARENA: Registering indicator %s." % indicator.name)
+	print("ARENA: Registering indicator %s." % indicator.label)
 
 	_root.add_child(indicator)
 	_indicators.append(indicator)
@@ -164,58 +164,58 @@ func _register_indicator(indicator: Indicator) -> void:
 	_sort_object(indicator)
 
 
-func add_beam_indicator(indicator_name: String, length: float, width: float, color: Color) -> Beam:
+func add_beam_indicator(label: String, length: float, width: float, color: Color) -> Beam:
 	var beam: Beam = Beam.new(length, width, color)
-	beam.name = indicator_name
+	beam.label = label
 
 	_register_indicator(beam)
 	return beam
 
 
-func add_circle_indicator(indicator_name: String, radius: float, invert: bool, color: Color) -> Circle:
+func add_circle_indicator(label: String, radius: float, invert: bool, color: Color) -> Circle:
 	var circle: Circle = Circle.new(radius, invert, color)
-	circle.name = indicator_name
+	circle.label = label
 
 	_register_indicator(circle)
 	return circle
 
 
-func add_cone_indicator(indicator_name: String, radius: float, arc_width: float, color: Color) -> Cone:
+func add_cone_indicator(label: String, radius: float, arc_width: float, color: Color) -> Cone:
 	var cone: Cone = Cone.new(radius, arc_width, color)
-	cone.name = indicator_name
+	cone.label = label
 
 	_register_indicator(cone)
 	return cone
 
 
-func add_donut_indicator(indicator_name: String, inner_radius: float, outer_radius: float, color: Color) -> Donut:
+func add_donut_indicator(label: String, inner_radius: float, outer_radius: float, color: Color) -> Donut:
 	var donut: Donut = Donut.new(inner_radius, outer_radius, color)
-	donut.name = indicator_name
+	donut.label = label
 
 	_register_indicator(donut)
 	return donut
 
 
-func add_tether_indicator(indicator_name: String, anchor_a: Token, anchor_b: Token, color: Color) -> Tether:
+func add_tether_indicator(label: String, anchor_a: Token, anchor_b: Token, color: Color) -> Tether:
 	var tether: Tether = Tether.new(anchor_a, anchor_b, color)
-	tether.name = indicator_name
+	tether.label = label
 	
 	_register_indicator(tether)
 	return tether
 
 
 # Finds the first indicator with the given name.
-func get_indicator(indicator_name: String) -> Indicator:
-	var found_indicators: Array[Indicator] = get_indicators(indicator_name)
+func get_indicator(label: String) -> Indicator:
+	var found_indicators: Array[Indicator] = get_indicators(label)
 	if found_indicators.is_empty(): return null
 	else: return found_indicators[0]
 
 
 # Finds all indicators with the given name.
-func get_indicators(indicator_name: String) -> Array[Indicator]:
+func get_indicators(label: String) -> Array[Indicator]:
 	var output: Array[Indicator]
 	for child in _indicators:
-		if child.name == indicator_name: output.append(child)
+		if child.label == label: output.append(child)
 	return output
 
 

@@ -599,9 +599,8 @@ func _get_failure_message(step_id: int, user_selection: Locator) -> Array[String
 		]
 
 
-func _enter_failure(step_id: int, substep_id: int) -> void:
+func _enter_failure(step_id: int, substep_id: int, user_selection: Locator) -> void:
 	if substep_id == 0: # Move everyone into position.
-		var user_selection: Locator = _get_incorrect_selection()
 		add_dependency(user_token)
 		user_token.move_to_locator(user_selection)
 		

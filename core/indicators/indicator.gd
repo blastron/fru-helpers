@@ -38,6 +38,9 @@ var __fade_out_time: float = 0
 var __fade_percentage: float = 1
 
 
+var label: String = ""
+
+
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return

@@ -45,8 +45,8 @@ class_name SextupleApocalypse extends Strat
 
 
 @export_group("Locators - Groups")
-# Collections of locators that are radially symmetrical around the stage. Index 0 is northwest, making 0-3 the support
-#   slices and 4-7 the DPS.
+# Collections of locators that are radially symmetrical around the stage. Index 0 is southwest, making 0-3 the support
+#   slices (purple/red) and 4-7 the DPS (yellow/blue).
 @export var slices: Array[SexApocLocatorGroup]
 
 
@@ -68,6 +68,7 @@ const _apoc_marker_color: Color = Color(1.0, 1.0, 1.0, 0.5)
 const _apoc_explosion_color: Color = Color(1.0, 1.0, 1.0, 0.75)
 
 const _stage_transition_color: Color = Color(0.42745098, 0.43529412, 0.8039216)
+const _safe_spot_color: Color = Color(0.2, 0.8, 0.2)
 
 const _darkest_dance_color: Color = Color(1.0, 0.87058824, 0.5529412)
 const _eruption_puddle_color: Color = Color(0.69803923, 0.5254902, 1.0)
@@ -130,9 +131,15 @@ func _enter_setup(step_id: int, substep_id: int) -> void:
 			finish_state()
 			
 		Step.TIMER_ASSIGNMENTS_AND_SWAP:
-			# Assign debuffs and determine swaps. First, build the list of possible debuffs, then shuffle it.
-			var durations: Array[int] = [0, 0, 10, 10, 29, 29, 38, 38]
-			durations.shuffle()
+			# Assign debuffs and determine swaps. First, build the list of possible debuff durations.
+			var durations: Array[int]
+			if _use_fixed_data():
+				# When using fixed data, assign things such that R1 and T2 will have to swap.
+				durations = [0, 0, 38, 29, 29, 10, 10, 38]
+			else:
+				# Shuffle the data entirely randomly.
+				durations = [0, 0, 10, 10, 29, 29, 38, 38]
+				durations.shuffle()
 	
 			# Assign debuffs to the DPS group in reverse swap priority order. Past the first assignment, if we assign
 			#   something that's already been assigned, mark that player as needing to swap to the other group.
@@ -156,16 +163,23 @@ func _enter_setup(step_id: int, substep_id: int) -> void:
 			finish_state()
 
 		Step.DETERMINE_SAFE_SPOT:
-			# Set initial variables.
-			_apoc_origin = randi_range(0, 3)
-			_clockwise = randi_range(0, 1)
-
-			# Drop marker puddles at the starting locations.
-			_place_apoc_setup_markers(0, true)
-			_cast_arena.cap_tracer_progress(0.5)
-			wait_for_duration(1)
-			
-			finish_state()
+			match substep_id:
+				0:
+					# Set initial variables.
+					_apoc_origin = 2 if _use_fixed_data() else randi_range(0, 3)
+					_clockwise = true if _use_fixed_data() else randi_range(0, 1)
+		
+					# Drop marker puddles at the starting locations.
+					_place_apoc_setup_markers(0, true)
+					_cast_arena.cap_tracer_progress(0.5)
+					wait_for_duration(1)
+					
+					if _mode == Mode.EXPLANATION: finish_substep()
+					else: finish_state()
+				1:
+					# In explainer mode, show the safe spots now that they've been set.
+					_show_safe_spots()
+					finish_state()
 			
 		# No more setup! Everything else is handled in resolution.
 		
@@ -229,8 +243,23 @@ func _place_apoc_setup_markers(apoc_step: int, add_tracers: bool):
 		var flare: Circle = _arena.add_circle_indicator("apoc flare", 20, false, _apoc_flash_color)
 		flare.background_opacity = 1
 		flare.position = location
-		flare.fade_out(1)
+		flare.fade_in_out(0.25, 0.75)
 
+
+func _show_safe_spots() -> void:
+	for slice_index in [_support_eruption_slice, _dps_eruption_slice]:
+		var slice: SexApocLocatorGroup = slices[slice_index]
+		var circle: Circle = _arena.add_circle_indicator("safe_spot", 50, false, _safe_spot_color)
+		circle.position = slice.flare_locator.position
+		circle.border_opacity = 1
+		circle.background_opacity = 0.1
+		wait_for_fade_in(circle, 0.25)
+
+
+func _hide_safe_spots() -> void:
+	for indicator in _arena.get_indicators("safe_spot"):
+		wait_for_fade_out(indicator, 0.25)
+	
 
 func _get_default_setup_locator(player: PlayerToken) -> Locator:
 	var is_g1: bool = player.player_data.group == PlayerData.Group.GROUP_ONE
@@ -271,8 +300,11 @@ func _get_spirit_taker_locator_for_stack_locator(setup_locator: Locator) -> Loca
 ##########
 
 
-func _should_pause_for_explanation(step_id: int) -> bool:
-	return true
+func _get_explainer_type(step_id: int) -> ExplainerStepType:
+	match step_id:
+		Step.FIRST_STACK, Step.ERUPTION, Step.DARKEST_DANCE:
+			return ExplainerStepType.MOVE_THEN_WAIT
+		_: return ExplainerStepType.INDICATE_THEN_MOVE
 
 
 func _get_explainer_message(step_id: int) -> Array[String]:
@@ -345,7 +377,7 @@ func _get_active_locators(step_id: int) -> Array[Locator]:
 				return output
 			else: return []
 			
-		Step.KNOCKBACK:
+		Step.KNOCKBACK, Step.THIRD_STACK:
 			# Get the locator the OT is at, then get the knockback locators from that locator's slice.
 			var t2_token: PlayerToken = get_player_token(PlayerData.Role.TANK, PlayerData.Group.GROUP_TWO)
 			var t2_locator: Locator = t2_token.current_locator
@@ -397,7 +429,12 @@ func _get_valid_movements(step_id: int) -> Dictionary:
 				var slice_index: int = _support_eruption_slice if player.player_data.is_support else _dps_eruption_slice
 				match player.player_data.role:
 					PlayerData.Role.TANK, PlayerData.Role.MELEE:
-						if player.player_data.group == PlayerData.Group.GROUP_TWO:
+						# The tank and melee players need to move over to the left or right depending on if the safe
+						#   spots are clockwise or counterclockwise, with one player remaining in the center of their
+						#   slice and the other moved over.
+						var shift_group: PlayerData.Group = PlayerData.Group.GROUP_TWO if _clockwise else \
+							PlayerData.Group.GROUP_ONE
+						if player.player_data.group == shift_group:
 							# The player is in group 2, so they position themselves at the next slice over. We want them
 							#   to wind up _almost_ at the next step over, so we have locators there, but we also don't
 							#   want to show a huge pile of locators at each step. So, the "valid" movement for a player
@@ -416,8 +453,8 @@ func _get_valid_movements(step_id: int) -> Dictionary:
 					
 					PlayerData.Role.HEALER, PlayerData.Role.RANGED:
 						var slice: SexApocLocatorGroup = slices[slice_index]
-						output[player] = [slice.eruption_out_cw if \
- 							player.player_data.group == PlayerData.Group.GROUP_TWO else slice.eruption_out_ccw]
+						output[player] = [slice.eruption_out_ccw if \
+ 							player.player_data.group == PlayerData.Group.GROUP_TWO else slice.eruption_out_cw]
 					_: pass
 			
 			return output
@@ -439,13 +476,26 @@ func _get_valid_movements(step_id: int) -> Dictionary:
 			var t2_token: PlayerToken = get_player_token(PlayerData.Role.TANK, PlayerData.Group.GROUP_TWO)
 			var current_slice: int = \
 				_support_eruption_slice if t2_token.has_tag(_tag_group_support) else _dps_eruption_slice
-
-			return {
-				t2_token: [
-					slices[_offset_slice(current_slice, -1)].tank_bait,
-					slices[_offset_slice(current_slice, 3)].tank_bait
-				]
-			}
+	
+			var safe_locators: Array[Locator] = [
+				slices[_offset_slice(current_slice, -1)].tank_bait,
+				slices[_offset_slice(current_slice, 3)].tank_bait
+			]
+	
+			if _mode == Mode.EXPLANATION:
+				# In explanation mode, only return the position closest to the player.
+				var distance_0: float = t2_token.position.distance_squared_to(safe_locators[0].position)
+				var distance_1: float = t2_token.position.distance_squared_to(safe_locators[1].position)
+				return {
+					t2_token: [safe_locators[0] if distance_0 < distance_1 else safe_locators[1]]
+				}
+			else:
+				return {
+					t2_token: [
+						slices[_offset_slice(current_slice, -1)].tank_bait,
+						slices[_offset_slice(current_slice, 3)].tank_bait
+					]
+				}
 				
 		Step.KNOCKBACK, Step.THIRD_STACK:
 			# Get the locator the OT is at, then get the knockback locators from that locator's slice. This is the same
@@ -461,7 +511,7 @@ func _get_valid_movements(step_id: int) -> Dictionary:
 			var output: Dictionary = {}
 			for player in player_tokens:
 				output[player] = \
-					[boss_slice.kb_origin_east if player.has_tag(_tag_group_support) else boss_slice.kb_origin_west]
+					[boss_slice.kb_origin_west if player.has_tag(_tag_group_support) else boss_slice.kb_origin_east]
 	
 			return output
 
@@ -559,6 +609,10 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 				3:
 					wait_for_duration(0.5)
 					finish_state()
+			
+		Step.DETERMINE_SAFE_SPOT:
+			_hide_safe_spots()
+			finish_state()
 	
 		Step.FIRST_STACK:
 			match substep_id:
@@ -649,18 +703,18 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 					finish_substep()
 				2:
 					# Handle the first apocalypse explosions.
-					_handle_apocalypse(0)
+					_handle_apocalypse(0, false)
 					wait_for_duration(1.5)
 					finish_substep()
 				3:
 					# Handle the second apocalypse explosions.
-					_handle_apocalypse(1)
+					_handle_apocalypse(1, false)
 					wait_for_duration(0.75)
 					finish_substep()
 				4:
 					# Detonate eruptions on all players.
 					for player in player_tokens:
-						_handle_eruption(player)
+						_handle_eruption(player, false)
 					wait_for_duration(0.75)
 					finish_state()
 		
@@ -668,15 +722,15 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 		Step.SECOND_STACK:
 			match substep_id:
 				0:
-					_handle_apocalypse(2)
+					_handle_apocalypse(2, false)
 					wait_for_duration(1.5)
 					finish_substep()
 				1:
-					_handle_apocalypse(3)
+					_handle_apocalypse(3, false)
 					wait_for_duration(1.5)
 					finish_substep()
 				2:
-					_handle_apocalypse(4)
+					_handle_apocalypse(4, false)
 					wait_for_duration(0.75)
 					finish_substep()
 				3:
@@ -688,7 +742,7 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 					wait_for_duration(1)
 					finish_substep()
 				4:
-					_handle_apocalypse(5)
+					_handle_apocalypse(5, false)
 					wait_for_duration(1.5)
 					finish_state()
 					
@@ -732,10 +786,9 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 				1:
 					var knockback_pool: Circle = _arena.add_circle_indicator("knockback", 145, false, _knockback_color)
 					knockback_pool.position = boss.position
-					knockback_pool.fade_in_out(0.25, 0.25)
+					wait_for_fade_in_out(knockback_pool, 0.25, 0.5)
 					for player in player_tokens:
 						player.knockback(boss.position, 250)
-					wait_for_duration(0.5)
 					finish_state()
 
 		Step.THIRD_STACK:
@@ -756,7 +809,7 @@ func _decrement_debuffs(amount: int) -> void:
 		if instance: instance.duration -= amount
 
 
-func _handle_apocalypse(apoc_step: int) -> void:
+func _handle_apocalypse(apoc_step: int, permanent: bool) -> void:
 	var step_slice_indices: Array[int] = _get_apoc_indices_for_step(apoc_step)
 
 	for slice_index in step_slice_indices:
@@ -766,9 +819,16 @@ func _handle_apocalypse(apoc_step: int) -> void:
 		else:
 			location = slices[slice_index].flare_locator.position
 		
-		var circle_indicator: Circle = _arena.add_circle_indicator("apoc", 145, false, _apoc_explosion_color)
-		circle_indicator.position = location
-		circle_indicator.fade_out(1)
+		var label: String = "apoc_%d" % slice_index
+		if permanent:
+			if _arena.get_indicator(label) == null:
+				var indicator: Circle = _arena.add_circle_indicator("apoc", 145, false, _apoc_explosion_color)
+				indicator.position = location
+				indicator.fade_in(0.25)
+		else:
+			var indicator: Circle = _arena.add_circle_indicator("apoc", 145, false, _apoc_explosion_color)
+			indicator.position = location
+			indicator.fade_in_out(0.25, 0.75)
 
 
 func _handle_darkest_dance(player: PlayerToken) -> void:
@@ -777,10 +837,12 @@ func _handle_darkest_dance(player: PlayerToken) -> void:
 	wait_for_fade_out(circle_indicator, 1)
 
 	
-func _handle_eruption(player: PlayerToken) -> void:
+func _handle_eruption(player: PlayerToken, permanent: bool) -> void:
 	var circle_indicator: Circle = _arena.add_circle_indicator("eruption", 90, false, _eruption_puddle_color)
 	circle_indicator.position = player.position
-	circle_indicator.fade_out(1)
+	
+	if permanent: circle_indicator.fade_in(0.2)
+	else: circle_indicator.fade_out(1)
 
 
 func _handle_spirit_taker(player: PlayerToken) -> void:
@@ -811,5 +873,43 @@ func _get_failure_message(step_id: int, user_selection: Locator) -> Array[String
 	return ["oh no"]
 
 
-func _enter_failure(step_id: int, substep_id: int) -> void:
-	finish_state()
+func _enter_failure(step_id: int, substep_id: int, user_selection: Locator) -> void:
+	match step_id:
+#		Step.INITIAL_SETUP: return ["spread out in a rectangle"]
+#		Step.TIMER_ASSIGNMENTS_AND_SWAP: return ["check for duplicate assignments and swap as needed"]
+#		Step.DETERMINE_SAFE_SPOT: return ["look for the safe spot based on the first bursts and CW/CCW"]
+#		Step.FIRST_STACK: return ["stack up in your swap group"]
+#		Step.SPIRIT_TAKER: return ["spread out to take a single AOE"]
+		
+		Step.ERUPTION:
+			match substep_id:
+				0:
+					_show_safe_spots()
+					var movements: Dictionary = _get_actual_movements(Step.ERUPTION, user_selection)
+					for player in movements.keys():
+						var player_token: PlayerToken = player
+						var destination: Locator = movements[player] if player != user_token else user_selection
+						player_token.move_to_locator(destination)
+					wait_for_duration(0.5)
+					finish_substep()
+				1:
+					_handle_apocalypse(0, true)
+					wait_for_duration(0.75)
+					finish_substep()
+				2:
+					_handle_apocalypse(1, true)
+					wait_for_duration(0.75)
+					finish_substep()
+				3:
+					_hide_safe_spots()
+					for player in player_tokens:
+						_handle_eruption(player, true)
+					finish_state()
+		
+#		Step.SECOND_STACK: return ["get back to the center and into your stack group"]
+#		Step.DARKEST_DANCE: return ["OT runs out to get stepped on :)"]
+#		Step.KNOCKBACK: return ["cluster behind the boss in your stack group for a knockback"]
+#		Step.THIRD_STACK: return ["group back up for the last stack"]
+	
+		_:
+			finish_state()

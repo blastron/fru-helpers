@@ -301,13 +301,14 @@ func _give_buff(player: PlayerToken, buff: BuffData, duration: int) -> void:
 ##########
 
 
-func _should_pause_for_explanation(step_id: int) -> bool:
-	return step_id in [
+func _get_explainer_type(step_id: int) -> ExplainerStepType:
+	if step_id in [
 		Step.ASSIGN_DEBUFFS, Step.ORIENT_NORTH,
 		Step.FIRST_FIRE, Step.SECOND_FIRE, Step.THIRD_FIRE,
 		Step.FIRST_BAITS, Step.SECOND_BAITS, Step.THIRD_BAITS,
 		Step.REWIND
-	]
+	]: return ExplainerStepType.INDICATE_THEN_MOVE
+	else: return ExplainerStepType.NO_USER_INPUT
 
 
 func _get_explainer_message(step_id: int) -> Array[String]:
@@ -827,5 +828,5 @@ func _get_laser_error_message(step_id: int, user_selection: Locator) -> Array[St
 	return []
 
 
-func _enter_failure(step_id: int, substep_id: int) -> void:
+func _enter_failure(step_id: int, substep_id: int, user_selection: Locator) -> void:
 	finish_state()

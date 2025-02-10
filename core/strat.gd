@@ -117,7 +117,8 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 			else:
 				match _mode:
 					Mode.EXPLANATION:
-						_show_explainer_arrows(new_step)
+						if _get_explainer_type(new_step) == ExplainerStepType.INDICATE_THEN_MOVE:
+							_show_explainer_arrows(new_step)
 						
 						# Wait for the user to press the Next button.
 						__ui.description_panel.next_enabled = true
@@ -189,7 +190,7 @@ func on_substep_entered(current_step: int, current_state: int, current_substep: 
 			_enter_resolution(current_step, current_substep)
 
 		State.FAILING:
-			_enter_failure(current_step, current_substep)
+			_enter_failure(current_step, current_substep, __selected_locator)
 
 		State.STRAT_COMPLETE:
 			pass
@@ -232,9 +233,15 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 				# Always wait for user decision on the first step, since we require the user to press the start button.
 				jump_to_state(current_step, State.WAITING_FOR_DECISION)
 			elif _mode == Mode.EXPLANATION:
-				# In explainer mode, possibly pause for the player to press the Next button.
-				if _should_pause_for_explanation(current_step): jump_to_state(current_step, State.WAITING_FOR_DECISION)
-				else: jump_to_state(current_step, State.PLAYER_MOVEMENT)
+				match _get_explainer_type(current_step):
+					ExplainerStepType.NO_USER_INPUT, ExplainerStepType.MOVE_THEN_WAIT:
+						# The player tokens should be moved immediately.
+						jump_to_state(current_step, State.PLAYER_MOVEMENT)
+					ExplainerStepType.INDICATE_THEN_MOVE:
+						# We want to show the user where tokens will move before actually moving them. Show the Next
+						#   button and wait for it to be pressed.
+						jump_to_state(current_step, State.WAITING_FOR_DECISION)
+					_: print("Unhandled explainer step type in SETTING_UP.")
 			elif _needs_user_decision(current_step):
 				# The strat wants the player to make a decision.
 				jump_to_state(current_step, State.WAITING_FOR_DECISION)
@@ -242,35 +249,55 @@ func on_state_finished(current_step: int, current_state: int) -> void:
 				jump_to_state(current_step, State.PLAYER_MOVEMENT)
 			
 		State.WAITING_FOR_DECISION:
+			# TODO: handle undo
 			if _mode == Mode.EXPLANATION:
 				# Remove all explainer elements.
 				_arena.clear_explainers()
-		
-			# TODO: handle undo
-			var valid_movements: Dictionary = _get_valid_movements(current_step)
-			var user_locators = valid_movements[user_token] if valid_movements.has(user_token) else []
-			if __selected_locator and not user_locators.has(__selected_locator):
-				# The user selected the incorrect locator. Mark it as incorrect, then highlight the valid locators.
-				if __selected_locator:
-					__selected_locator.state = Locator.State.INCORRECT
-		
-				for valid_locator in _get_failure_hint_movements(current_step):
-					valid_locator.state = Locator.State.CORRECT
-		
-				# Show the error message.
-				var failure_message: Array[String] = _get_failure_message(current_step, __selected_locator)
-				__ui.description_panel.strat_description = failure_message
-			
-				# Skip to failure resolution.
-				jump_to_state(current_step, State.FAILING)
-				
+				match _get_explainer_type(current_step):
+					ExplainerStepType.INDICATE_THEN_MOVE:
+						jump_to_state(current_step, State.PLAYER_MOVEMENT)
+					ExplainerStepType.MOVE_THEN_WAIT:
+						jump_to_state(current_step, State.RESOLVING)
+					ExplainerStepType.NO_USER_INPUT:
+						assert(current_step == 0, "NO_USER_INPUT explainer step type should only be seen on exit from " +
+							"WAITING_FOR_DECISION if we're on step 0, because step 0 injects a user input anyway.")
+						jump_to_state(current_step, State.RESOLVING)
+					_: print("Unhandled explainer step type in WAITING_FOR_DECISION.")
 			else:
-				# Either no actual decision needed to be made or the user made the correct decision.
-				jump_to_state(current_step, State.PLAYER_MOVEMENT)
+				var valid_movements: Dictionary = _get_valid_movements(current_step)
+				var user_locators = valid_movements[user_token] if valid_movements.has(user_token) else []
+				if __selected_locator and not user_locators.has(__selected_locator):
+					# The user selected the incorrect locator. Mark it as incorrect, then highlight the valid locators.
+					if __selected_locator:
+						__selected_locator.state = Locator.State.INCORRECT
+			
+					for valid_locator in _get_failure_hint_movements(current_step):
+						valid_locator.state = Locator.State.CORRECT
+			
+					# Show the error message.
+					var failure_message: Array[String] = _get_failure_message(current_step, __selected_locator)
+					__ui.description_panel.strat_description = failure_message
+				
+					# Skip to failure resolution.
+					jump_to_state(current_step, State.FAILING)
+					
+				else:
+					# Either no actual decision needed to be made or the user made the correct decision.
+					jump_to_state(current_step, State.PLAYER_MOVEMENT)
 			
 		State.PLAYER_MOVEMENT:
-			# Player movement has finished. Start resolving the mechanic.
-			jump_to_state(current_step, State.RESOLVING)
+			if _mode == Mode.EXPLANATION:
+				match _get_explainer_type(current_step):
+					ExplainerStepType.NO_USER_INPUT, ExplainerStepType.INDICATE_THEN_MOVE:
+						# No further user interaction is necessary.
+						jump_to_state(current_step, State.RESOLVING)
+					ExplainerStepType.MOVE_THEN_WAIT:
+						# Now that the tokens have moved, wait for the player to press the Next button.
+						jump_to_state(current_step, State.WAITING_FOR_DECISION)
+					_: print("Unhandled explainer step type in PLAYER_MOVEMENT.")
+			else:
+				# Player movement has finished. Start resolving the mechanic.
+				jump_to_state(current_step, State.RESOLVING)
 			
 		State.RESOLVING:
 			# Resolution has finished.
@@ -345,10 +372,19 @@ func _nav_explain() -> void:
 	__ui.description_panel.strat_description = explainer_message
 
 
-# Determines whether the "next" button should be shown at the current step in the explanation process. By default, tests
-#   if that step prompts any player movements.
-func _should_pause_for_explanation(step_id: int) -> bool:
-	return !_get_valid_movements(step_id).is_empty()
+enum ExplainerStepType {
+	NO_USER_INPUT,			# Go straight from setup to resolution.
+	MOVE_THEN_WAIT,			# Move the player tokens immediately, without drawing any arrows.
+	INDICATE_THEN_MOVE,		# Draw arrows from the token's current location to the destination, then wait to move until
+							#   the user clicks "next".
+}
+
+
+# Determines the behavior of the explanation for this step. By default, tests if the step prompts any player movements.
+#   If it does, it shows arrows indicating the movement; if it does not, it does not pause for any explanation.
+func _get_explainer_type(step_id: int) -> ExplainerStepType:
+	var has_valid_movements: bool = !_get_valid_movements(step_id).is_empty()
+	return ExplainerStepType.INDICATE_THEN_MOVE if has_valid_movements else ExplainerStepType.NO_USER_INPUT
 
 
 # Gets the message to show to the player for this step in explanation mode. Returns an array of strings, which will be
@@ -615,14 +651,9 @@ func _get_failure_message(step_id: int, user_selection: Locator) -> Array[String
 	return ["Incorrect."]
 
 
-# Gets the locator that the user selected that caused the failure.
-func _get_incorrect_selection() -> Locator:
-	return __selected_locator
-
-
 # Called when each failure resolution substep is entered. By default, moves the player to their selected locator and
 #   immediately exits without waiting for the movement to complete.
-func _enter_failure(step_id: int, substep_id: int) -> void:
+func _enter_failure(step_id: int, substep_id: int, user_selection: Locator) -> void:
 	if __selected_locator: user_token.move_to_locator(__selected_locator)
 	finish_state()
 

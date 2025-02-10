@@ -42,7 +42,7 @@ locator_spirit_taker_E_NW = NodePath("P3Arena/background/token root/spirit taker
 locator_spirit_taker_E_NE = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_e_ne")
 locator_spirit_taker_E_SW = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_e_sw")
 locator_spirit_taker_E_SE = NodePath("P3Arena/background/token root/spirit taker locators/spirit_taker_e_se")
-slices = [NodePath("P3Arena/background/token root/locator groups/group_nw"), NodePath("P3Arena/background/token root/locator groups/group_n"), NodePath("P3Arena/background/token root/locator groups/group_ne"), NodePath("P3Arena/background/token root/locator groups/group_e"), NodePath("P3Arena/background/token root/locator groups/group_se"), NodePath("P3Arena/background/token root/locator groups/group_s"), NodePath("P3Arena/background/token root/locator groups/group_sw"), NodePath("P3Arena/background/token root/locator groups/group_w")]
+slices = [NodePath("P3Arena/background/token root/locator groups/group_sw"), NodePath("P3Arena/background/token root/locator groups/group_w"), NodePath("P3Arena/background/token root/locator groups/group_nw"), NodePath("P3Arena/background/token root/locator groups/group_n"), NodePath("P3Arena/background/token root/locator groups/group_ne"), NodePath("P3Arena/background/token root/locator groups/group_e"), NodePath("P3Arena/background/token root/locator groups/group_se"), NodePath("P3Arena/background/token root/locator groups/group_s")]
 _debuff_water = SubResource("Resource_2xrrf")
 __ui = NodePath("StratUi")
 _arena = NodePath("P3Arena")
@@ -106,6 +106,7 @@ offset_right = 151.0
 offset_bottom = 26.0
 
 [node name="first stack locators" type="Node2D" parent="P3Arena/background/token root" index="2"]
+visible = false
 
 [node name="first_stack_w_nw" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
 offset_left = -142.0
@@ -217,7 +218,6 @@ offset_right = 226.0
 offset_bottom = 76.0
 
 [node name="locator groups" type="Node2D" parent="P3Arena/background/token root" index="4"]
-visible = false
 
 [node name="group_n" parent="P3Arena/background/token root/locator groups" instance=ExtResource("5_kdf02")]
 
