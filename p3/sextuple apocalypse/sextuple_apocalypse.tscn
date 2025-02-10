@@ -106,55 +106,54 @@ offset_right = 151.0
 offset_bottom = 26.0
 
 [node name="first stack locators" type="Node2D" parent="P3Arena/background/token root" index="2"]
-visible = false
 
 [node name="first_stack_w_nw" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
-offset_left = -142.0
-offset_top = -17.0
-offset_right = -141.0
-offset_bottom = -16.0
+offset_left = -140.0
+offset_top = -15.0
+offset_right = -139.0
+offset_bottom = -14.0
 
 [node name="first_stack_w_ne" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
-offset_left = -108.0
-offset_top = -17.0
-offset_right = -107.0
-offset_bottom = -16.0
+offset_left = -110.0
+offset_top = -15.0
+offset_right = -109.0
+offset_bottom = -14.0
 
 [node name="first_stack_w_sw" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
-offset_left = -142.0
-offset_top = 17.0
-offset_right = -141.0
-offset_bottom = 18.0
+offset_left = -140.0
+offset_top = 15.0
+offset_right = -139.0
+offset_bottom = 16.0
 
 [node name="first_stack_w_se" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
-offset_left = -108.0
-offset_top = 17.0
-offset_right = -107.0
-offset_bottom = 18.0
+offset_left = -110.0
+offset_top = 15.0
+offset_right = -109.0
+offset_bottom = 16.0
 
 [node name="first_stack_e_nw" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
-offset_left = 108.0
-offset_top = -17.0
-offset_right = 109.0
-offset_bottom = -16.0
+offset_left = 110.0
+offset_top = -15.0
+offset_right = 111.0
+offset_bottom = -14.0
 
 [node name="first_stack_e_ne" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
-offset_left = 142.0
-offset_top = -17.0
-offset_right = 143.0
-offset_bottom = -16.0
+offset_left = 140.0
+offset_top = -15.0
+offset_right = 141.0
+offset_bottom = -14.0
 
 [node name="first_stack_e_sw" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
-offset_left = 108.0
-offset_top = 17.0
-offset_right = 109.0
-offset_bottom = 18.0
+offset_left = 110.0
+offset_top = 15.0
+offset_right = 111.0
+offset_bottom = 16.0
 
 [node name="first_stack_e_se" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
-offset_left = 143.0
-offset_top = 17.0
-offset_right = 144.0
-offset_bottom = 18.0
+offset_left = 141.0
+offset_top = 15.0
+offset_right = 142.0
+offset_bottom = 16.0
 
 [node name="first_stack_w" parent="P3Arena/background/token root/first stack locators" instance=ExtResource("14_5r4tp")]
 offset_left = -125.0
@@ -218,6 +217,7 @@ offset_right = 226.0
 offset_bottom = 76.0
 
 [node name="locator groups" type="Node2D" parent="P3Arena/background/token root" index="4"]
+visible = false
 
 [node name="group_n" parent="P3Arena/background/token root/locator groups" instance=ExtResource("5_kdf02")]
 

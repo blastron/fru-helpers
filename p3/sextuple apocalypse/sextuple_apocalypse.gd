@@ -332,6 +332,13 @@ func _get_explainer_message(step_id: int) -> Array[String]:
 #	return false
 
 
+func _use_instant_movement(step_id: int) -> bool:
+	match step_id:
+		Step.FIRST_STACK, Step.SPIRIT_TAKER, Step.ERUPTION:
+			return false
+		_: return true
+
+
 func _get_active_locators(step_id: int) -> Array[Locator]:
 	match step_id:
 		Step.TIMER_ASSIGNMENTS_AND_SWAP:
@@ -617,17 +624,19 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 		Step.FIRST_STACK:
 			match substep_id:
 				0:
+					_cast_arena.uncap_tracer_progress()
+					wait_for_duration(0.5)
+					finish_substep()
+				1:
 					_decrement_debuffs(10) # TEMP: split this up
 					for player in player_tokens:
 						if player.player_data.get_buff_duration(_debuff_water) == 0:
 							player.player_data.remove_buff(_debuff_water)
 							_handle_water_stack(player)
-			
-					_cast_arena.uncap_tracer_progress()
-					wait_for_duration(0.75)
+					
+					wait_for_duration(0.25)
 					finish_substep()
-		
-				1:
+				2:
 					_place_apoc_setup_markers(1, true)
 					_cast_arena.cap_tracer_progress(0.5)
 			
@@ -658,6 +667,7 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 					wait_for_duration(0.25)
 					
 					finish_substep()
+					
 				3:
 					var taker_player: PlayerToken = find_token_by_tag(_tag_spirit_taker)
 					_handle_spirit_taker(taker_player)
@@ -666,28 +676,25 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 					finish_substep()
 					
 				4:
-					# Pop off the stage to recenter.
+					# Pop the boss off the stage to recenter.
 					boss.on_stage = false
-			
-					# Drop the fourth set of apoc markers.
-					_place_apoc_setup_markers(3, true)
 					wait_for_duration(0.25)
+
+					# Drop the fourth set of apoc markers and wait for a bit. The players can technically start moving
+					#   the instant the boss leaps, but we want to pause for dramatic effect.
+					_place_apoc_setup_markers(3, true)
+					_cast_arena.cap_tracer_progress(0.5)
 			
 					finish_substep()
+			
 				5:
-					# Pop back on.
+					# Pop the boss back on, then wait for the apoc markers to stop spinning.
 					boss.teleport_to_position(Vector2(0, 0))
 					boss.face_direction(PI / 2)
 					boss.on_stage = true
 			
-					# Wait for a lengthy bit to give the apoc markers time to tick.
-					wait_for_duration(1.25)
-					finish_substep()
-				6:
-					# Drop the fifth set of apoc markers.
-					_place_apoc_setup_markers(4, true)
-					_cast_arena.cap_tracer_progress(0.5)
-					wait_for_duration(0.75)
+					wait_for_duration(0.5)
+			
 					finish_state()
 					
 		
@@ -697,21 +704,28 @@ func _enter_resolution(step_id: int, substep_id: int) -> void:
 					_cast_arena.uncap_tracer_progress()
 					wait_for_duration(0.75)
 					finish_substep()
+
 				1:
-					_place_apoc_setup_markers(5, false)
+					# Drop the fifth set of apoc markers.
+					_place_apoc_setup_markers(4, true)
 					wait_for_duration(1.5)
 					finish_substep()
 				2:
+					# Drop the sixth and final set of apoc markers.
+					_place_apoc_setup_markers(5, false)
+					wait_for_duration(1.5)
+					finish_substep()
+				3:
 					# Handle the first apocalypse explosions.
 					_handle_apocalypse(0, false)
 					wait_for_duration(1.5)
 					finish_substep()
-				3:
+				4:
 					# Handle the second apocalypse explosions.
 					_handle_apocalypse(1, false)
 					wait_for_duration(0.75)
 					finish_substep()
-				4:
+				5:
 					# Detonate eruptions on all players.
 					for player in player_tokens:
 						_handle_eruption(player, false)

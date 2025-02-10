@@ -245,8 +245,6 @@ func _get_explainer_message(step_id: int) -> Array[String]:
 
 
 func _needs_user_decision(step_id: int) -> bool:
-	if super(step_id): return true
-	
 	match step_id:
 		# Initial tethers move into position
 		Step.TETHER_ONE: return user_token.has_tag(_tether_tags[0])

@@ -136,6 +136,7 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 			# Get the list of movements to perform.
 			var user_selection: Locator = __selected_locator if _needs_user_decision(new_step) else null
 			var movements: Dictionary = _get_actual_movements(new_step, user_selection)
+			var instant_movement: bool = _mode == Mode.EXPLANATION or _use_instant_movement(new_step)
 		
 			# Iterate through all players that have reported movement and move them to their selected locations.
 			var total_moves: int = 0
@@ -143,11 +144,18 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 				var player_token: PlayerToken = key
 				var destination: Locator = movements[key]
 			
-				add_dependency(player_token)
-				player_token.move_to_locator(destination)
 				total_moves += 1
+				if instant_movement:
+					add_dependency(player_token)
+					player_token.move_to_locator(destination)
+				else:
+					player_token.move_to_locator(destination, _get_non_instant_movement_speed(new_step))
+				
 			
-			if total_moves <= 0:
+			if not instant_movement:
+				print("Starting %d non-instant player movements for step %d..." % [total_moves, new_step])
+				jump_to_state(new_step, State.RESOLVING)
+			elif total_moves <= 0:
 				# No player movement is necessary. Skip straight to step resolution.
 				print("No movement was necessary for step %d. Skipping to resolution." % new_step)
 				jump_to_state(new_step, State.RESOLVING)
@@ -156,7 +164,6 @@ func on_state_entered(new_step: int, new_state: int, previous_step: int, previou
 			
 				# Set a minimum amount of time for the player movement step.
 				wait_for_duration(0.5)
-			
 				finish_state()
 			
 		State.RESOLVING:
@@ -478,6 +485,17 @@ func _process_setup(step_id: int, substep_id: int, delta: float) -> void:
 #   player to click on.
 func _needs_user_decision(step_id: int) -> bool:
 	return !_get_active_locators(step_id).is_empty()
+
+
+# Returns whether players move "instantaneously" to their correct spots, pausing resolution while they move, or if they
+#   move while the resolution step is happening. Ignored in explanation mode.
+func _use_instant_movement(step_id: int) -> bool:
+	return true
+
+
+# Returns the movement speed to use for the players while they are moving during the resolution step.
+func _get_non_instant_movement_speed(step_id: int) -> float:
+	return 150
 
 
 # Returns the list of locators that should be clickable in this step. Other locators will either be deactivated or
